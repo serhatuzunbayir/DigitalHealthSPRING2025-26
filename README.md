@@ -25,7 +25,7 @@
 partially completed activities, red for missed goals.
 3. **Scalability** – The database and application architecture shall support at least 50 concurrent clients and 10 trainers without degradation in response time.
 4. **Reliability** – Delegate-based notification events shall guarantee delivery to all subscribed handlers, and no session notification shall be silently dropped due to unhandled exceptions.
-5. **Security & Privacy** – All client health data shall be stored securely with  role-based authorization ensuring trainers can only access data of their assigned clients, and clients cannot access other clients' data. User passwords shall be hashed using bcrypt with a cost factor of 12 before storage.
+5. **Security & Privacy** – All client health data shall be stored securely with  role-based authorization ensuring trainers can only access data of their assigned clients, and clients cannot access other clients' data. User passwords shall be hashed using firebase's hash algorithm.
 
 ## Scenario
 
