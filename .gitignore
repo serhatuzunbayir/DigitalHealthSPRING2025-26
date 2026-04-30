@@ -8,7 +8,6 @@
 # Custom folder icons
 Icon
 
-
 # Volume root files
 .DocumentRevisions-V100
 .fseventsd
@@ -103,4 +102,6 @@ artifacts/
 
 # Publish output
 publish/
+
+### JetBrains Rider / IntelliJ
 .idea/
