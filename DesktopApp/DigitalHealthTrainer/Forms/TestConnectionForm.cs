@@ -1,4 +1,5 @@
 using DigitalHealthTrainer.Data;
+using DigitalHealthTrainer.Localization;
 using Npgsql;
 
 namespace DigitalHealthTrainer.Forms
@@ -11,13 +12,13 @@ namespace DigitalHealthTrainer.Forms
 
         public TestConnectionForm()
         {
-            this.Text = "Veritabanı Bağlantı Testi";
+            this.Text = Lang.Get("test_title");
             this.Size = new Size(450, 350);
             this.StartPosition = FormStartPosition.CenterScreen;
 
             btnTest = new Button
             {
-                Text = "Bağlantıyı Test Et",
+                Text = Lang.Get("btn_test"),
                 Location = new Point(20, 20),
                 Size = new Size(200, 40),
                 Font = new Font("Segoe UI", 10, FontStyle.Bold)
@@ -26,7 +27,7 @@ namespace DigitalHealthTrainer.Forms
 
             lblResult = new Label
             {
-                Text = "Henüz test edilmedi.",
+                Text = Lang.Get("not_tested"),
                 Location = new Point(20, 75),
                 Size = new Size(400, 25),
                 Font = new Font("Segoe UI", 10)
@@ -46,7 +47,7 @@ namespace DigitalHealthTrainer.Forms
         {
             lstTables.Items.Clear();
             lblResult.ForeColor = Color.Black;
-            lblResult.Text = "Bağlanılıyor...";
+            lblResult.Text = Lang.Get("test_connecting");
 
             try
             {
@@ -54,9 +55,8 @@ namespace DigitalHealthTrainer.Forms
                 conn.Open();
 
                 lblResult.ForeColor = Color.Green;
-                lblResult.Text = "Bağlantı başarılı!";
+                lblResult.Text = Lang.Get("test_success");
 
-                // Tabloları listele
                 string query = @"SELECT table_name
                                  FROM information_schema.tables
                                  WHERE table_schema = 'public'
@@ -72,14 +72,14 @@ namespace DigitalHealthTrainer.Forms
 
                 if (lstTables.Items.Count == 0)
                 {
-                    lstTables.Items.Add("(Henüz tablo oluşturulmamış)");
+                    lstTables.Items.Add(Lang.Get("test_no_tables"));
                 }
             }
             catch (Exception ex)
             {
                 lblResult.ForeColor = Color.Red;
-                lblResult.Text = "Bağlantı başarısız!";
-                lstTables.Items.Add("Hata: " + ex.Message);
+                lblResult.Text = Lang.Get("test_failed");
+                lstTables.Items.Add(Lang.Get("error") + ": " + ex.Message);
             }
         }
     }

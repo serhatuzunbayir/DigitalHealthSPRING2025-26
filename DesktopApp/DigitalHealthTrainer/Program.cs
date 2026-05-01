@@ -8,8 +8,7 @@ namespace DigitalHealthTrainer
         static void Main()
         {
             ApplicationConfiguration.Initialize();
-            // TODO: Bağlantı testi sonrası LoginForm'a geri dönülecek şu anlık dümenden bağlantı testi
-            Application.Run(new TestConnectionForm());
+            Application.Run(new LoginForm());
         }
     }
 }
