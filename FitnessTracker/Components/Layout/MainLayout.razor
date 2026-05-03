@@ -1,0 +1,61 @@
+@inherits LayoutComponentBase
+@using FitnessTracker.Services
+@inject ClientStateService State
+@inject NavigationManager Nav
+@implements IDisposable
+
+<div class="app-shell @(State.IsLoggedIn ? "logged-in" : "logged-out")">
+    @if (State.IsLoggedIn)
+    {
+        <nav class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">FitTrack</span>
+            </div>
+
+            <ul class="nav-links">
+                <li><NavLink href="/" Match="NavLinkMatch.All"><span class="icon">◈</span> Dashboard</NavLink></li>
+                <li><NavLink href="/exercises"><span class="icon">◉</span> Exercises</NavLink></li>
+                <li><NavLink href="/health"><span class="icon">♥</span> Health</NavLink></li>
+                <li><NavLink href="/goals"><span class="icon">◎</span> Goals</NavLink></li>
+                <li><NavLink href="/sessions"><span class="icon">◷</span> Sessions</NavLink></li>
+                <li><NavLink href="/programs"><span class="icon">◱</span> Programs</NavLink></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-chip">
+                    <span class="avatar">@State.CurrentClient!.Username[0].ToString().ToUpper()</span>
+                    <span class="username">@State.CurrentClient.Username</span>
+                </div>
+                <button class="btn-logout" @onclick="Logout">Sign out</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-wrapper">
+                @Body
+            </div>
+        </main>
+    }
+    else
+    {
+        <main class="auth-wrapper">
+            @Body
+        </main>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += StateHasChanged;
+    }
+
+    private async Task Logout()
+    {
+        await State.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+
+    public void Dispose() => State.OnChange -= StateHasChanged;
+}

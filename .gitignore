@@ -105,3 +105,6 @@ publish/
 
 ### JetBrains Rider / IntelliJ
 .idea/
+
+FitnessTracker/appsettings.json
+FitnessTracker/appsettings.Development.json

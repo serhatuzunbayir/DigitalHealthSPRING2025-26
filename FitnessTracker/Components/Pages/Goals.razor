@@ -1,0 +1,135 @@
+@page "/goals"
+@using FitnessTracker.Services
+@using FitnessTracker.Models
+@inject FitnessService Fitness
+@inject ClientStateService State
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Fitness Goals – FitTrack</PageTitle>
+
+@if (!_ready) { <div class="skeleton-card"></div> }
+else if (!State.IsLoggedIn) { <div class="skeleton-card"></div> }
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Fitness Goals</h1>
+            <p class="subtitle">Set targets and track your progress</p>
+        </div>
+        <button class="btn-primary" @onclick="() => showForm = !showForm">
+            @(showForm ? "✕ Cancel" : "+ New Goal")
+        </button>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="card form-card">
+            <h2>Create Goal</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Goal Type</label>
+                    <select @bind="newGoal.GoalType">
+                        <option value="">— Select —</option>
+                        <option value="weight_loss">Weight Loss</option>
+                        <option value="strength_target">Strength Target</option>
+                        <option value="weekly_exercise_frequency">Weekly Exercise Frequency</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Value</label>
+                    <input type="number" @bind="newGoal.TargetValue" step="0.01" />
+                </div>
+                <div class="form-group">
+                    <label>Deadline (optional)</label>
+                    <input type="date" @bind="deadline" />
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(formError))
+            { <div class="alert alert-error">@formError</div> }
+            <button class="btn-primary" @onclick="SaveGoal">Create Goal</button>
+        </div>
+    }
+
+    @if (goals == null) { <div class="skeleton-card"></div> }
+    else if (!goals.Any())
+    {
+        <div class="empty-state"><span>🎯</span><p>No goals yet. Set your first target!</p></div>
+    }
+    else
+    {
+        <div class="goals-grid">
+            @foreach (var goal in goals)
+            {
+                <div class="goal-card @StatusClass(goal.Status)">
+                    <div class="goal-header">
+                        <span class="goal-type">@FormatGoalType(goal.GoalType)</span>
+                        <span class="goal-badge">@(goal.Status ?? "in_progress")</span>
+                    </div>
+                    <div class="goal-values">
+                        <div class="goal-target"><span>Target</span><strong>@goal.TargetValue @GoalUnit(goal.GoalType)</strong></div>
+                        @if (goal.CurrentValue.HasValue)
+                        { <div class="goal-current"><span>Current</span><strong>@goal.CurrentValue @GoalUnit(goal.GoalType)</strong></div> }
+                    </div>
+                    @if (goal.CurrentValue.HasValue)
+                    {
+                        var pct = Math.Min(100, (int)((double)goal.CurrentValue / (double)goal.TargetValue * 100));
+                        <div class="progress-bar"><div class="progress-fill" style="width:@(pct)%"></div></div>
+                    }
+                    @if (goal.Deadline.HasValue)
+                    { <div class="goal-deadline">📅 @goal.Deadline.Value.ToString("MMM d, yyyy")</div> }
+                    <div class="goal-actions">
+                        <input type="number" step="0.01" placeholder="Update progress" @bind="progressUpdates[goal.GoalId]" />
+                        <button class="btn-sm" @onclick="() => UpdateProgress(goal.GoalId)">Update</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    List<FitnessGoal>? goals;
+    FitnessGoal newGoal = new();
+    DateOnly? deadline;
+    bool showForm = false, _ready = false;
+    string formError = "";
+    Dictionary<int, decimal> progressUpdates = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await State.LoadFromSessionAsync();
+        _ready = true;
+        if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        goals = await Fitness.GetGoalsAsync(State.CurrentClient!.ClientId);
+        progressUpdates = goals.ToDictionary(g => g.GoalId, g => g.CurrentValue ?? 0);
+        StateHasChanged();
+    }
+
+    async Task SaveGoal()
+    {
+        formError = "";
+        if (string.IsNullOrEmpty(newGoal.GoalType) || newGoal.TargetValue <= 0)
+        { formError = "Goal type and target value are required."; return; }
+        newGoal.ClientId = State.CurrentClient!.ClientId;
+        newGoal.Deadline = deadline;
+        await Fitness.AddGoalAsync(newGoal);
+        newGoal = new(); deadline = null; showForm = false;
+        goals = await Fitness.GetGoalsAsync(State.CurrentClient!.ClientId);
+        progressUpdates = goals.ToDictionary(g => g.GoalId, g => g.CurrentValue ?? 0);
+    }
+
+    async Task UpdateProgress(int goalId)
+    {
+        if (progressUpdates.TryGetValue(goalId, out var val))
+        {
+            await Fitness.UpdateGoalProgressAsync(goalId, val);
+            goals = await Fitness.GetGoalsAsync(State.CurrentClient!.ClientId);
+        }
+    }
+
+    static string StatusClass(string? status) => status switch { "completed" => "status-green", "missed" => "status-red", _ => "status-yellow" };
+    static string FormatGoalType(string t) => t switch { "weight_loss" => "Weight Loss", "strength_target" => "Strength Target", "weekly_exercise_frequency" => "Weekly Frequency", _ => t };
+    static string GoalUnit(string t) => t switch { "weight_loss" => "kg", "weekly_exercise_frequency" => "sessions/wk", _ => "" };
+}

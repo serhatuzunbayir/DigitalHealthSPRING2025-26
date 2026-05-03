@@ -1,0 +1,64 @@
+@page "/programs"
+@using FitnessTracker.Services
+@using FitnessTracker.Models
+@inject FitnessService Fitness
+@inject ClientStateService State
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Workout Programs – FitTrack</PageTitle>
+
+@if (!_ready) { <div class="skeleton-card"></div> }
+else if (!State.IsLoggedIn) { <div class="skeleton-card"></div> }
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Workout Programs</h1>
+            <p class="subtitle">Programs assigned by your trainer</p>
+        </div>
+    </div>
+
+    @if (programs == null) { <div class="skeleton-card"></div> }
+    else if (!programs.Any())
+    {
+        <div class="empty-state">
+            <span>📋</span>
+            <p>No workout programs assigned yet. Your trainer will create one for you.</p>
+        </div>
+    }
+    else
+    {
+        <div class="programs-grid">
+            @foreach (var p in programs)
+            {
+                <div class="program-card">
+                    <div class="program-header">
+                        <h3>@p.ProgramName</h3>
+                        <span class="program-date">@p.CreatedDate.ToString("MMM d, yyyy")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(p.Description))
+                    { <p class="program-desc">@p.Description</p> }
+                    <div class="program-footer">
+                        <span class="trainer-tag">by @p.Trainer?.Username</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    List<WorkoutProgram>? programs;
+    bool _ready = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await State.LoadFromSessionAsync();
+        _ready = true;
+        if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        programs = await Fitness.GetProgramsAsync(State.CurrentClient!.ClientId);
+        StateHasChanged();
+    }
+}

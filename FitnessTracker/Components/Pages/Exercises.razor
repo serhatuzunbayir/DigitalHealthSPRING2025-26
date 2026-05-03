@@ -1,0 +1,142 @@
+@page "/exercises"
+@using FitnessTracker.Services
+@using FitnessTracker.Models
+@inject FitnessService Fitness
+@inject ClientStateService State
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Exercise Log – FitTrack</PageTitle>
+
+@if (!_ready)
+{
+    <div class="skeleton-card"></div>
+}
+else if (!State.IsLoggedIn)
+{
+    <div class="skeleton-card"></div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Exercise Log</h1>
+            <p class="subtitle">Track your daily workouts</p>
+        </div>
+        <button class="btn-primary" @onclick="() => showForm = !showForm">
+            @(showForm ? "✕ Cancel" : "+ Log Exercise")
+        </button>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="card form-card">
+            <h2>New Exercise Entry</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Exercise Type</label>
+                    <input type="text" @bind="newLog.ExerciseType" placeholder="e.g. Running, Bench Press" />
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" @bind="logDate" />
+                </div>
+                <div class="form-group">
+                    <label>Duration (minutes)</label>
+                    <input type="number" @bind="newLog.DurationMinutes" min="1" />
+                </div>
+                <div class="form-group">
+                    <label>Calories Burned</label>
+                    <input type="number" @bind="newLog.CaloriesBurned" min="0" />
+                </div>
+                <div class="form-group">
+                    <label>Sets</label>
+                    <input type="number" @bind="newLog.Sets" min="0" />
+                </div>
+                <div class="form-group">
+                    <label>Reps</label>
+                    <input type="number" @bind="newLog.Reps" min="0" />
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(formError))
+            {
+                <div class="alert alert-error">@formError</div>
+            }
+            <button class="btn-primary" @onclick="SaveLog">Save Entry</button>
+        </div>
+    }
+
+    @if (logs == null)
+    {
+        <div class="skeleton-card"></div>
+    }
+    else if (!logs.Any())
+    {
+        <div class="empty-state">
+            <span>🏋️</span>
+            <p>No exercises logged yet. Start your first session!</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Exercise</th><th>Duration</th>
+                        <th>Sets × Reps</th><th>Calories</th><th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in logs)
+                    {
+                        <tr>
+                            <td>@log.LogDate.ToString("MMM d, yyyy")</td>
+                            <td><strong>@log.ExerciseType</strong></td>
+                            <td>@log.DurationMinutes min</td>
+                            <td>@(log.Sets.HasValue ? $"{log.Sets} × {log.Reps}" : "—")</td>
+                            <td>@(log.CaloriesBurned?.ToString("N0") ?? "—") kcal</td>
+                            <td><button class="btn-icon danger" @onclick="() => DeleteLog(log.LogId)">✕</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    List<ExerciseLog>? logs;
+    ExerciseLog newLog = new();
+    DateOnly logDate = DateOnly.FromDateTime(DateTime.Today);
+    bool showForm = false, _ready = false;
+    string formError = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await State.LoadFromSessionAsync();
+        _ready = true;
+        if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        logs = await Fitness.GetLogsAsync(State.CurrentClient!.ClientId);
+        StateHasChanged();
+    }
+
+    async Task SaveLog()
+    {
+        formError = "";
+        if (string.IsNullOrWhiteSpace(newLog.ExerciseType) || newLog.DurationMinutes <= 0)
+        { formError = "Exercise type and duration are required."; return; }
+        newLog.ClientId = State.CurrentClient!.ClientId;
+        newLog.LogDate = logDate;
+        await Fitness.AddLogAsync(newLog);
+        newLog = new(); logDate = DateOnly.FromDateTime(DateTime.Today); showForm = false;
+        logs = await Fitness.GetLogsAsync(State.CurrentClient.ClientId);
+    }
+
+    async Task DeleteLog(int id)
+    {
+        await Fitness.DeleteLogAsync(id);
+        logs = await Fitness.GetLogsAsync(State.CurrentClient!.ClientId);
+    }
+}

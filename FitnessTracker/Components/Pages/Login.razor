@@ -1,0 +1,100 @@
+@page "/login"
+@using FitnessTracker.Services
+@inject AuthService Auth
+@inject ClientStateService State
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Sign In – FitTrack</PageTitle>
+
+<div class="auth-card">
+    <div class="auth-brand">
+        <span class="logo-icon">⚡</span>
+        <h1>FitTrack</h1>
+        <p>Your personal fitness companion</p>
+    </div>
+
+    <div class="auth-tabs">
+        <button class="@(isLogin ? "active" : "")" @onclick="() => isLogin = true">Sign In</button>
+        <button class="@(!isLogin ? "active" : "")" @onclick="() => isLogin = false">Register</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMsg))
+    {
+        <div class="alert alert-error">@errorMsg</div>
+    }
+    @if (!string.IsNullOrEmpty(successMsg))
+    {
+        <div class="alert alert-success">@successMsg</div>
+    }
+
+    @if (isLogin)
+    {
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" @bind="username" placeholder="your_username" />
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" @bind="password" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary full-width" @onclick="DoLogin" disabled="@loading">
+            @(loading ? "Signing in…" : "Sign In")
+        </button>
+    }
+    else
+    {
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" @bind="username" placeholder="choose_a_username" />
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" @bind="email" placeholder="you@email.com" />
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" @bind="password" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary full-width" @onclick="DoRegister" disabled="@loading">
+            @(loading ? "Creating account…" : "Create Account")
+        </button>
+    }
+</div>
+
+@code {
+    bool isLogin = true;
+    bool loading = false;
+    string username = "", email = "", password = "";
+    string errorMsg = "", successMsg = "";
+
+    protected override void OnInitialized()
+    {
+        if (State.IsLoggedIn) Nav.NavigateTo("/");
+    }
+
+   async Task DoLogin()
+    {
+        errorMsg = ""; loading = true;
+        var client = await Auth.LoginAsync(username, password);
+        loading = false;
+        if (client == null) { errorMsg = "Invalid username or password."; return; }
+        await State.SetClientAsync(client);   // <-- async now
+        Nav.NavigateTo("/");
+    }
+
+    async Task DoRegister()
+    {
+        errorMsg = ""; successMsg = ""; loading = true;
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMsg = "All fields are required."; loading = false; return;
+        }
+        var client = await Auth.RegisterAsync(username, email, password);
+        loading = false;
+        if (client == null) { errorMsg = "Username or email already taken."; return; }
+        successMsg = "Account created! You can now sign in.";
+        isLogin = true;
+        password = "";
+    }
+}
