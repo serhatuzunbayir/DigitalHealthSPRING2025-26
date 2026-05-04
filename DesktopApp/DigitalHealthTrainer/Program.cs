@@ -1,14 +1,16 @@
-using DigitalHealthTrainer.Forms;
+using Avalonia;
 
 namespace DigitalHealthTrainer
 {
     internal static class Program
     {
         [STAThread]
-        static void Main()
-        {
-            ApplicationConfiguration.Initialize();
-            Application.Run(new LoginForm());
-        }
+        public static void Main(string[] args) => BuildAvaloniaApp()
+            .StartWithClassicDesktopLifetime(args);
+
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .LogToTrace();
     }
 }

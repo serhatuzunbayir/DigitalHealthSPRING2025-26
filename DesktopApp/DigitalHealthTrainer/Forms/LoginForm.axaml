@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DigitalHealthTrainer.Forms.LoginForm"
+        Title="Digital Health Trainer"
+        Width="420" Height="440"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Background="#F5F5F5">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Language Selector -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,5">
+            <TextBlock x:Name="lblLanguage" Text="Language:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="cmbLanguage" Width="110" SelectedIndex="0">
+                <ComboBoxItem Content="English"/>
+                <ComboBoxItem Content="Türkçe"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Main Panel -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#CCCCCC" BorderThickness="1"
+                CornerRadius="8" Padding="25" Margin="15,0">
+            <StackPanel Spacing="8">
+
+                <!-- Title -->
+                <TextBlock x:Name="lblTitle" Text="Trainer Login"
+                           FontSize="22" FontWeight="Bold" Foreground="#2980B5"
+                           HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+                <!-- Username -->
+                <TextBlock x:Name="lblUsername" Text="Username:" FontSize="13"/>
+                <TextBox x:Name="txtUsername" FontSize="14" Watermark="Enter username"/>
+
+                <!-- Password -->
+                <TextBlock x:Name="lblPassword" Text="Password:" FontSize="13"/>
+                <TextBox x:Name="txtPassword" FontSize="14" PasswordChar="●" Watermark="Enter password"/>
+
+                <!-- Email (hidden by default) -->
+                <TextBlock x:Name="lblEmail" Text="E-mail:" FontSize="13" IsVisible="False"/>
+                <TextBox x:Name="txtEmail" FontSize="14" Watermark="Enter e-mail" IsVisible="False"/>
+
+                <!-- Buttons -->
+                <Grid Margin="0,10,0,0" ColumnDefinitions="*,10,*">
+                    <Button x:Name="btnLogin" Grid.Column="0" Content="Login"
+                            FontSize="14" FontWeight="Bold" Height="42"
+                            Background="#2980B5" Foreground="White"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                    <Button x:Name="btnRegister" Grid.Column="2" Content="Register"
+                            FontSize="14" Height="42"
+                            Background="#2ECC71" Foreground="White"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                </Grid>
+
+                <!-- Status -->
+                <TextBlock x:Name="lblStatus" Text="" FontSize="12"
+                           HorizontalAlignment="Center" Margin="0,5,0,0"
+                           TextWrapping="Wrap"/>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
