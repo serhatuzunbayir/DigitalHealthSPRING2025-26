@@ -71,25 +71,9 @@ namespace DigitalHealthTrainer.Forms
                 {
                     ShowStatus(Lang.Get("login_success"), Brushes.Green);
 
-                    // TODO: DashboardForm açılacak
-                    // var dashboard = new DashboardForm(trainer);
-                    // dashboard.Show();
-                    // this.Close();
-
-                    var msgBox = new Window
-                    {
-                        Title = Lang.Get("success"),
-                        Width = 300, Height = 150,
-                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                        Content = new TextBlock
-                        {
-                            Text = Lang.Format("login_welcome", trainer.Username),
-                            FontSize = 14,
-                            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-                        }
-                    };
-                    msgBox.ShowDialog(this);
+                    var dashboard = new DashboardForm(trainer);
+                    dashboard.Show();
+                    this.Close();
                 }
                 else
                 {

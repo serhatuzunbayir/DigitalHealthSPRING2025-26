@@ -68,6 +68,11 @@ namespace DigitalHealthTrainer.Localization
 
             // ========== DASHBOARD ==========
             Add("dashboard_title", "Dashboard - Client Monitoring", "Dashboard - Client Takibi");
+            Add("dashboard_welcome", "Welcome, {0}!", "Hoş geldiniz, {0}!");
+            Add("btn_logout", "Logout", "Çıkış");
+            Add("btn_dashboard", "Dashboard", "Dashboard");
+            Add("btn_reports", "Reports", "Raporlar");
+            Add("total_clients", "Total Clients", "Toplam Danışan");
             Add("client_name", "Client", "Danışan");
             Add("last_activity", "Last Activity", "Son Aktivite");
             Add("adherence_rate", "Adherence Rate", "Uyum Oranı");
