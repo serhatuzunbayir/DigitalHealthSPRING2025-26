@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DigitalHealthTrainer.Forms.ProgressReportForm"
+        Title="Progress Reports"
+        Width="950" Height="620"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="800" MinHeight="500">
+
+    <Grid RowDefinitions="Auto,*" Margin="24,20">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock x:Name="lblPageTitle" Text="📈 Progress Reports" Classes="page-title"/>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Spacing="16">
+
+            <!-- ===== FILTER PANEL ===== -->
+            <Border Classes="card" Padding="20,16">
+                <Grid ColumnDefinitions="*,10,*,10,*,10,*,10,Auto" RowDefinitions="Auto,8,Auto">
+
+                    <!-- Row 0: Labels -->
+                    <TextBlock Grid.Column="0" Grid.Row="0" x:Name="lblSelectClient"
+                               Text="Select Client" Classes="label"/>
+                    <TextBlock Grid.Column="2" Grid.Row="0" x:Name="lblExerciseType"
+                               Text="Exercise Type" Classes="label"/>
+                    <TextBlock Grid.Column="4" Grid.Row="0" x:Name="lblFromDate"
+                               Text="From Date" Classes="label"/>
+                    <TextBlock Grid.Column="6" Grid.Row="0" x:Name="lblToDate"
+                               Text="To Date" Classes="label"/>
+
+                    <!-- Row 2: Controls -->
+                    <ComboBox Grid.Column="0" Grid.Row="2" x:Name="cmbClient"
+                              Classes="modern" HorizontalAlignment="Stretch"/>
+                    <ComboBox Grid.Column="2" Grid.Row="2" x:Name="cmbExerciseType"
+                              Classes="modern" HorizontalAlignment="Stretch"/>
+                    <DatePicker Grid.Column="4" Grid.Row="2" x:Name="dpFrom"
+                                HorizontalAlignment="Stretch"/>
+                    <DatePicker Grid.Column="6" Grid.Row="2" x:Name="dpTo"
+                                HorizontalAlignment="Stretch"/>
+                    <Button Grid.Column="8" Grid.Row="2" x:Name="btnGenerate"
+                            Content="Generate" Classes="primary" VerticalAlignment="Bottom"/>
+                </Grid>
+            </Border>
+
+            <!-- ===== RESULTS TABS ===== -->
+            <TabControl Grid.Row="1">
+
+                <!-- Tab 1: Exercise Summary -->
+                <TabItem x:Name="tabExercise" Header="🏃 Exercise Summary">
+                    <Border Classes="card" Margin="0,8,0,0" Padding="0">
+                        <DataGrid x:Name="dgExercise" AutoGenerateColumns="False"
+                                  IsReadOnly="True" CanUserSortColumns="True"
+                                  MinHeight="200" Margin="8">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Week" Binding="{Binding WeekLabel}" Width="100"/>
+                                <DataGridTextColumn Header="Avg Duration (min)" Binding="{Binding AvgDuration}" Width="140"/>
+                                <DataGridTextColumn Header="Avg Calories" Binding="{Binding AvgCalories}" Width="120"/>
+                                <DataGridTextColumn Header="Total Sessions" Binding="{Binding TotalSessions}" Width="120"/>
+                                <DataGridTextColumn Header="Exercise Types" Binding="{Binding ExerciseTypes}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </TabItem>
+
+                <!-- Tab 2: Health Metrics -->
+                <TabItem x:Name="tabHealth" Header="❤️ Health Metrics">
+                    <Border Classes="card" Margin="0,8,0,0" Padding="0">
+                        <DataGrid x:Name="dgHealth" AutoGenerateColumns="False"
+                                  IsReadOnly="True" CanUserSortColumns="True"
+                                  MinHeight="200" Margin="8">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Date" Binding="{Binding DateDisplay}" Width="110"/>
+                                <DataGridTextColumn Header="Weight (kg)" Binding="{Binding WeightDisplay}" Width="110"/>
+                                <DataGridTextColumn Header="Heart Rate" Binding="{Binding HeartRateDisplay}" Width="110"/>
+                                <DataGridTextColumn Header="Sleep (hrs)" Binding="{Binding SleepDisplay}" Width="110"/>
+                                <DataGridTextColumn Header="Water (L)" Binding="{Binding WaterDisplay}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </TabItem>
+
+                <!-- Tab 3: Goal Progress -->
+                <TabItem x:Name="tabGoals" Header="🎯 Goal Progress">
+                    <Grid RowDefinitions="Auto,*" Margin="0,8,0,0">
+                        <!-- Goal stats -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+                            <Border Classes="stat-card" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock x:Name="lblGoalTotal" Text="0" Classes="stat-value" Foreground="#4F46E5"/>
+                                    <TextBlock x:Name="lblGoalTotalLabel" Text="Total Goals" Classes="stat-label"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Classes="stat-card" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock x:Name="lblGoalCompleted" Text="0" Classes="stat-value" Foreground="#059669"/>
+                                    <TextBlock x:Name="lblGoalCompletedLabel" Text="Completed" Classes="stat-label"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Classes="stat-card" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock x:Name="lblGoalInProgress" Text="0" Classes="stat-value" Foreground="#D97706"/>
+                                    <TextBlock x:Name="lblGoalInProgressLabel" Text="In Progress" Classes="stat-label"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Classes="stat-card" MinWidth="140">
+                                <StackPanel>
+                                    <TextBlock x:Name="lblGoalRate" Text="0%" Classes="stat-value" Foreground="#DC2626"/>
+                                    <TextBlock x:Name="lblGoalRateLabel" Text="Completion %" Classes="stat-label"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <Border Grid.Row="1" Classes="card" Padding="0">
+                            <DataGrid x:Name="dgGoals" AutoGenerateColumns="False"
+                                      IsReadOnly="True" CanUserSortColumns="True"
+                                      MinHeight="150" Margin="8">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Goal Type" Binding="{Binding GoalTypeDisplay}" Width="180"/>
+                                    <DataGridTextColumn Header="Target" Binding="{Binding TargetValue}" Width="100"/>
+                                    <DataGridTextColumn Header="Current" Binding="{Binding CurrentValueDisplay}" Width="100"/>
+                                    <DataGridTextColumn Header="Deadline" Binding="{Binding DeadlineDisplay}" Width="110"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="120"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+    </Grid>
+</Window>
