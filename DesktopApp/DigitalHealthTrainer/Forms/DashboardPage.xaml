@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DigitalHealthTrainer.Forms.DashboardPage"
+             BackgroundColor="{StaticResource PageBg}"
+             Title="Dashboard">
+
+    <Grid ColumnDefinitions="220,*">
+
+        <!-- SIDEBAR -->
+        <Grid Grid.Column="0" BackgroundColor="{StaticResource Sidebar}" RowDefinitions="Auto,Auto,*,Auto" Padding="16">
+            <VerticalStackLayout Grid.Row="0" Spacing="2" Margin="0,8,0,20">
+                <Label Text="💪" FontSize="32" HorizontalOptions="Center"/>
+                <Label Text="Digital Health" FontSize="16" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                <Label Text="Trainer Panel" FontSize="11" TextColor="{StaticResource TextMuted}" HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+            <Border Grid.Row="1" BackgroundColor="#334155" Stroke="Transparent"
+                    StrokeShape="RoundRectangle 10" Padding="12" Margin="0,0,0,20">
+                <VerticalStackLayout>
+                    <Label x:Name="lblTrainerName" Text="Trainer" FontSize="14" FontAttributes="Bold" TextColor="White"/>
+                    <Label x:Name="lblTrainerEmail" Text="" FontSize="11" TextColor="{StaticResource TextMuted}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Grid.Row="2" Spacing="4">
+                <Label Text="MENU" FontSize="10" TextColor="#475569" FontAttributes="Bold" Margin="8,0,0,6"/>
+                <Button x:Name="btnNavDashboard" Text="📊 Dashboard" Style="{StaticResource NavActiveBtn}"/>
+                <Button x:Name="btnNavWorkouts" Text="🏋️ Workouts" Style="{StaticResource NavBtn}"/>
+                <Button x:Name="btnNavSessions" Text="📅 Sessions" Style="{StaticResource NavBtn}"/>
+                <Button x:Name="btnNavReports" Text="📈 Reports" Style="{StaticResource NavBtn}"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Grid.Row="3" Spacing="8">
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="🌐" TextColor="{StaticResource TextMuted}" VerticalOptions="Center"/>
+                    <Picker x:Name="pckLanguage" WidthRequest="130" SelectedIndex="0" TextColor="White">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>English</x:String>
+                                <x:String>Türkçe</x:String>
+                            </x:Array>
+                        </Picker.ItemsSource>
+                    </Picker>
+                </HorizontalStackLayout>
+                <Button x:Name="btnLogout" Text="🚪 Logout" Style="{StaticResource NavBtn}" TextColor="#F87171"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- MAIN CONTENT -->
+        <ScrollView Grid.Column="1">
+            <VerticalStackLayout x:Name="contentArea" Padding="28,20" Spacing="16">
+                <!-- Will be populated by code-behind based on active tab -->
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
