@@ -1,0 +1,173 @@
+@page "/"
+@using FitnessTracker.Services
+@inject FitnessService Fitness
+@inject ClientStateService State
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard – FitTrack</PageTitle>
+
+@if (!_ready)
+{
+    <div class="loading-fullscreen">
+        <div class="spinner"></div>
+    </div>
+}
+else if (!State.IsLoggedIn)
+{
+    <div class="loading-fullscreen"><div class="spinner"></div></div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Good <span class="greeting-time">@Greeting</span>, <span class="accent">@State.CurrentClient!.Username</span> 👋</h1>
+            <p class="subtitle">Here's your fitness overview for today</p>
+        </div>
+        <span class="date-badge">@DateTime.Today.ToString("dddd, MMM d")</span>
+    </div>
+
+    @if (stats == null)
+    {
+        <div class="loading-grid">
+            @for (int i = 0; i < 4; i++) { <div class="skeleton-card"></div> }
+        </div>
+    }
+    else
+    {
+        <div class="stats-grid">
+            <div class="stat-card accent-green">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-label">Calories (30d)</div>
+                <div class="stat-value">@stats.TotalCaloriesMonth.ToString("N0")</div>
+                <div class="stat-sub">kcal burned</div>
+            </div>
+            <div class="stat-card accent-blue">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-label">Active Time (30d)</div>
+                <div class="stat-value">@stats.TotalMinutesMonth</div>
+                <div class="stat-sub">minutes</div>
+            </div>
+            <div class="stat-card accent-yellow">
+                <div class="stat-icon">🏋️</div>
+                <div class="stat-label">Sessions This Week</div>
+                <div class="stat-value">@stats.SessionsThisWeek</div>
+                <div class="stat-sub">workouts logged</div>
+            </div>
+            <div class="stat-card @GoalCardClass">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-label">Goal Completion</div>
+                <div class="stat-value">@stats.GoalCompletionPercent<span class="stat-pct">%</span></div>
+                <div class="stat-sub">@stats.ActiveGoals active · @stats.MissedGoals missed</div>
+            </div>
+        </div>
+
+        <div class="dashboard-row">
+            <div class="card chart-card">
+                <div class="chart-header">
+                    <h2>Weekly Calories</h2>
+                    @if (stats.WeeklyCalories.Any())
+                    {
+                        <span class="chart-total">@stats.WeeklyCalories.Sum(c => c.Calories).ToString("N0") kcal total</span>
+                    }
+                </div>
+                @if (!stats.WeeklyCalories.Any())
+                {
+                    <div class="empty-chart">
+                        <span>📈</span>
+                        <p>Log exercises to see your calorie chart.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="bar-chart">
+                        @{ int maxCal = stats.WeeklyCalories.Max(c => c.Calories); maxCal = maxCal == 0 ? 1 : maxCal; }
+                        @foreach (var d in stats.WeeklyCalories)
+                        {
+                            var pct = (int)(d.Calories * 100.0 / maxCal);
+                            var isToday = d.Date == DateOnly.FromDateTime(DateTime.Today);
+                            <div class="bar-col">
+                                <span class="bar-val">@(d.Calories > 0 ? d.Calories.ToString() : "")</span>
+                                <div class="bar @(isToday ? "bar-today" : "")" style="height:@(Math.Max(pct,4))%"></div>
+                                <span class="bar-label @(isToday ? "bar-label-today" : "")">@d.Date.ToString("ddd")</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="side-panel">
+                @if (stats.LatestWeight.HasValue || stats.LatestHeartRate.HasValue)
+                {
+                    <div class="card metrics-card">
+                        <h2>Latest Metrics</h2>
+                        @if (stats.LatestWeight.HasValue)
+                        {
+                            <div class="metric-row">
+                                <span class="metric-icon">⚖️</span>
+                                <span class="metric-label">Weight</span>
+                                <strong>@stats.LatestWeight kg</strong>
+                            </div>
+                        }
+                        @if (stats.LatestHeartRate.HasValue)
+                        {
+                            <div class="metric-row">
+                                <span class="metric-icon">❤️</span>
+                                <span class="metric-label">Heart Rate</span>
+                                <strong>@stats.LatestHeartRate bpm</strong>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="card session-card">
+                    <h2>Next Session</h2>
+                    @if (stats.UpcomingSession != null)
+                    {
+                        <div class="upcoming-session">
+                            <div class="session-date-block">
+                                <span class="session-day">@stats.UpcomingSession.SessionTime.ToString("dd")</span>
+                                <span class="session-month">@stats.UpcomingSession.SessionTime.ToString("MMM")</span>
+                            </div>
+                            <div class="session-details">
+                                <div class="session-time-text">@stats.UpcomingSession.SessionTime.ToString("HH:mm")</div>
+                                <div class="session-trainer-text">with @stats.UpcomingSession.Trainer?.Username</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-session">
+                            <p>No upcoming sessions.</p>
+                            <a href="/sessions" class="btn-link">Schedule one →</a>
+                        </div>
+                    }
+                </div>
+
+                <div class="quick-actions">
+                    <a href="/exercises" class="quick-btn">+ Log Exercise</a>
+                    <a href="/health" class="quick-btn quick-btn-outline">+ Health Data</a>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    DashboardStats? stats;
+    bool _ready = false;
+
+    string Greeting => DateTime.Now.Hour < 12 ? "morning" : DateTime.Now.Hour < 18 ? "afternoon" : "evening";
+    string GoalCardClass => stats?.GoalCompletionPercent >= 75 ? "accent-green" :
+                             stats?.GoalCompletionPercent >= 40 ? "accent-yellow" : "accent-red";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await State.LoadFromSessionAsync();
+        _ready = true;
+        if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        stats = await Fitness.GetDashboardStatsAsync(State.CurrentClient!.ClientId);
+        StateHasChanged();
+    }
+}

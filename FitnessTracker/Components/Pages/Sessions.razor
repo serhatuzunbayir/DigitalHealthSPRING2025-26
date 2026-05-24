@@ -1,0 +1,145 @@
+@page "/sessions"
+@using FitnessTracker.Services
+@using FitnessTracker.Models
+@inject FitnessService Fitness
+@inject ClientStateService State
+@inject SessionNotificationService Notifications
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Virtual Sessions – FitTrack</PageTitle>
+
+@if (!_ready) { <div class="skeleton-card"></div> }
+else if (!State.IsLoggedIn) { <div class="skeleton-card"></div> }
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Virtual Sessions</h1>
+            <p class="subtitle">Schedule sessions with your trainer</p>
+        </div>
+        <button class="btn-primary" @onclick="() => showForm = !showForm">
+            @(showForm ? "✕ Cancel" : "+ Request Session")
+        </button>
+    </div>
+
+    @if (notifications.Any())
+    {
+        <div class="notification-bar">
+            @foreach (var n in notifications.TakeLast(3))
+            { <div class="notification @n.Type">@n.Message</div> }
+        </div>
+    }
+
+    @if (showForm)
+    {
+        <div class="card form-card">
+            <h2>Request a Session</h2>
+            @if (!trainers.Any())
+            {
+                <p class="empty-hint">You have no assigned trainers yet. Contact the admin.</p>
+            }
+            else
+            {
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Trainer</label>
+                        <select @bind="selectedTrainerId">
+                            <option value="0">— Select trainer —</option>
+                            @foreach (var t in trainers)
+                            { <option value="@t.TrainerId">@t.Username</option> }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date & Time</label>
+                        <input type="datetime-local" @bind="sessionTime" />
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (minutes)</label>
+                        <input type="number" @bind="duration" min="15" step="15" />
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(formError))
+                { <div class="alert alert-error">@formError</div> }
+                <button class="btn-primary" @onclick="RequestSession">Request Session</button>
+            }
+        </div>
+    }
+
+    @if (sessions == null) { <div class="skeleton-card"></div> }
+    else if (!sessions.Any())
+    {
+        <div class="empty-state"><span>📅</span><p>No upcoming sessions. Request one above!</p></div>
+    }
+    else
+    {
+        <div class="sessions-list">
+            @foreach (var s in sessions)
+            {
+                <div class="session-card @SessionClass(s.Status)">
+                    <div class="session-info">
+                        <div class="session-time">@s.SessionTime.ToLocalTime().ToString("dddd, MMM d · HH:mm")</div>
+                        <div class="session-meta">with @s.Trainer?.Username · @s.DurationMinutes min</div>
+                    </div>
+                    <div class="session-right">
+                        <span class="session-status">@s.Status</span>
+                        @if (s.Status == "scheduled")
+                        { <button class="btn-sm danger" @onclick="() => CancelSession(s)">Cancel</button> }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    List<VirtualSession>? sessions;
+    List<Trainer> trainers = new();
+    List<NotificationEntry> notifications = new();
+    int selectedTrainerId = 0;
+    DateTime sessionTime = DateTime.Now.AddDays(1);
+    int duration = 60;
+    bool showForm = false, _ready = false;
+    string formError = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await State.LoadFromSessionAsync();
+        _ready = true;
+        if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        var cid = State.CurrentClient!.ClientId;
+        sessions = await Fitness.GetSessionsAsync(cid);
+        trainers = await Fitness.GetAssignedTrainersAsync(cid);
+        notifications = Notifications.GetNotifications(cid).ToList();
+        StateHasChanged();
+    }
+
+    async Task RequestSession()
+    {
+        formError = "";
+        if (selectedTrainerId == 0) { formError = "Please select a trainer."; return; }
+        if (sessionTime <= DateTime.Now) { formError = "Please pick a future date and time."; return; }
+        var session = new VirtualSession
+        {
+            ClientId = State.CurrentClient!.ClientId, TrainerId = selectedTrainerId,
+            SessionTime = sessionTime.ToUniversalTime(), DurationMinutes = duration,
+            Status = "scheduled", Trainer = trainers.FirstOrDefault(t => t.TrainerId == selectedTrainerId)
+        };
+        await Fitness.RequestSessionAsync(session);
+        Notifications.NotifyScheduled(session);
+        showForm = false; selectedTrainerId = 0;
+        sessions = await Fitness.GetSessionsAsync(State.CurrentClient!.ClientId);
+        notifications = Notifications.GetNotifications(State.CurrentClient.ClientId).ToList();
+    }
+
+    async Task CancelSession(VirtualSession session)
+    {
+        await Fitness.CancelSessionAsync(session.SessionId);
+        Notifications.NotifyCanceled(session);
+        sessions = await Fitness.GetSessionsAsync(State.CurrentClient!.ClientId);
+        notifications = Notifications.GetNotifications(State.CurrentClient.ClientId).ToList();
+    }
+
+    static string SessionClass(string status) => status switch { "scheduled" => "status-yellow", "completed" => "status-green", "canceled" => "status-red", _ => "" };
+}
