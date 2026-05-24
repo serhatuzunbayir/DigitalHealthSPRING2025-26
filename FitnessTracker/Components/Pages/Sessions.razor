@@ -6,6 +6,7 @@
 @inject SessionNotificationService Notifications
 @inject NavigationManager Nav
 @rendermode InteractiveServer
+@implements IDisposable
 
 <PageTitle>Virtual Sessions – FitTrack</PageTitle>
 
@@ -66,6 +67,22 @@ else
         </div>
     }
 
+    @if (LiveSession != null)
+    {
+        <div class="live-session-banner">
+            <div class="live-banner-left">
+                <span class="live-banner-dot"></span>
+                <div>
+                    <strong class="live-banner-title">Live Session in Progress!</strong>
+                    <p class="live-banner-sub">Your session with <strong>@LiveSession.Trainer?.Username</strong> is currently active · @LiveSession.DurationMinutes min</p>
+                </div>
+            </div>
+            <div class="live-banner-time">
+                @LiveSession.SessionTime.ToLocalTime().ToString("HH:mm")
+            </div>
+        </div>
+    }
+
     @if (sessions == null) { <div class="skeleton-card"></div> }
     else if (!sessions.Any())
     {
@@ -78,11 +95,15 @@ else
             {
                 <div class="session-card @SessionClass(s.Status)">
                     <div class="session-info">
-                        <div class="session-time">@s.SessionTime.ToLocalTime().ToString("dddd, MMM d · HH:mm")</div>
+                        <div class="session-time">
+                            @if (s.Status == "in_progress")
+                            { <span class="live-dot"></span> }
+                            @s.SessionTime.ToLocalTime().ToString("dddd, MMM d · HH:mm")
+                        </div>
                         <div class="session-meta">with @s.Trainer?.Username · @s.DurationMinutes min</div>
                     </div>
                     <div class="session-right">
-                        <span class="session-status">@s.Status</span>
+                        <span class="session-status-badge @StatusBadgeClass(s.Status)">@StatusLabel(s.Status)</span>
                         @if (s.Status == "scheduled")
                         { <button class="btn-sm danger" @onclick="() => CancelSession(s)">Cancel</button> }
                     </div>
@@ -97,6 +118,9 @@ else
     List<Trainer> trainers = new();
     List<NotificationEntry> notifications = new();
     int selectedTrainerId = 0;
+    int _clientId;
+    System.Threading.Timer? _pollTimer;
+    VirtualSession? LiveSession => sessions?.FirstOrDefault(s => s.Status == "in_progress");
     DateTime sessionTime = DateTime.Now.AddDays(1);
     int duration = 60;
     bool showForm = false, _ready = false;
@@ -108,12 +132,24 @@ else
         await State.LoadFromSessionAsync();
         _ready = true;
         if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
-        var cid = State.CurrentClient!.ClientId;
-        sessions = await Fitness.GetSessionsAsync(cid);
-        trainers = await Fitness.GetAssignedTrainersAsync(cid);
-        notifications = Notifications.GetNotifications(cid).ToList();
+        _clientId = State.CurrentClient!.ClientId;
+        sessions = await Fitness.GetSessionsAsync(_clientId);
+        trainers = await Fitness.GetAssignedTrainersAsync(_clientId);
+        notifications = Notifications.GetNotifications(_clientId).ToList();
         StateHasChanged();
+
+        // Poll every 5 s so trainer's "Start Live" is reflected without a manual refresh
+        _pollTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                sessions = await Fitness.GetSessionsAsync(_clientId);
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
+
+    public void Dispose() => _pollTimer?.Dispose();
 
     async Task RequestSession()
     {
@@ -141,5 +177,27 @@ else
         notifications = Notifications.GetNotifications(State.CurrentClient.ClientId).ToList();
     }
 
-    static string SessionClass(string status) => status switch { "scheduled" => "status-yellow", "completed" => "status-green", "canceled" => "status-red", _ => "" };
+    static string SessionClass(string status) => status switch
+    {
+        "scheduled"   => "status-yellow",
+        "completed"   => "status-green",
+        "canceled"    => "status-red",
+        "in_progress" => "status-live",
+        _             => ""
+    };
+    static string StatusBadgeClass(string status) => status switch
+    {
+        "completed"   => "badge-green",
+        "canceled"    => "badge-red",
+        "in_progress" => "badge-live",
+        _             => "badge-yellow"
+    };
+    static string StatusLabel(string status) => status switch
+    {
+        "in_progress" => "🔴 LIVE",
+        "scheduled"   => "scheduled",
+        "completed"   => "completed",
+        "canceled"    => "canceled",
+        _             => status
+    };
 }

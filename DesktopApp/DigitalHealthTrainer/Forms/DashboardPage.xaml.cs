@@ -20,69 +20,73 @@ namespace DigitalHealthTrainer.Forms
 
             // Events
             btnNavDashboard.Clicked += (s, e) => SwitchTab("dashboard");
+            btnNavClients.Clicked  += (s, e) => SwitchTab("clients");
             btnNavWorkouts.Clicked += (s, e) => SwitchTab("workouts");
             btnNavSessions.Clicked += (s, e) => SwitchTab("sessions");
-            btnNavReports.Clicked += (s, e) => SwitchTab("reports");
+            btnNavGoals.Clicked    += (s, e) => SwitchTab("goals");
+            btnNavReports.Clicked  += (s, e) => SwitchTab("reports");
             btnLogout.Clicked += (s, e) => Application.Current!.Windows[0].Page = new LoginPage();
-            pckLanguage.SelectedIndexChanged += (s, e) =>
-            {
-                Lang.Current = pckLanguage.SelectedIndex == 0 ? AppLanguage.English : AppLanguage.Turkish;
-                UpdateNavTexts();
-                SwitchTab(_activeTab);
-            };
 
             // Subscribe to notification events (DELEGATE requirement)
-            NotificationService.OnSessionCanceled += OnNotification;
+            NotificationService.OnSessionCanceled  += OnNotification;
             NotificationService.OnSessionCompleted += OnNotification;
-            NotificationService.OnSessionCreated += OnNotification;
+            NotificationService.OnSessionCreated   += OnNotification;
+            NotificationService.OnSessionStarted   += OnNotification;
 
             SwitchTab("dashboard");
         }
 
-        private async void OnNotification(string message, int sessionId, string status)
+        private void OnNotification(string message, int sessionId, string status)
         {
-            await MainThread.InvokeOnMainThreadAsync(async () =>
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await DisplayAlertAsync(Lang.Get("notification"), message, "OK");
+                try
+                {
+                    await DisplayAlert(Lang.Get("notification"), message, "OK");
+                }
+                catch { }
             });
-        }
-
-        private void UpdateNavTexts()
-        {
-            btnNavDashboard.Text = "📊 " + Lang.Get("btn_dashboard");
-            btnNavWorkouts.Text = "🏋️ " + Lang.Get("workout_title");
-            btnNavSessions.Text = "📅 " + Lang.Get("sessions_title");
-            btnNavReports.Text = "📈 " + Lang.Get("btn_reports");
-            btnLogout.Text = "🚪 " + Lang.Get("btn_logout");
         }
 
         private void SwitchTab(string tab)
         {
             _activeTab = tab;
-            // Reset nav button styles
-            btnNavDashboard.Style = (Style)Application.Current!.Resources["NavBtn"];
-            btnNavWorkouts.Style = (Style)Application.Current!.Resources["NavBtn"];
-            btnNavSessions.Style = (Style)Application.Current!.Resources["NavBtn"];
-            btnNavReports.Style = (Style)Application.Current!.Resources["NavBtn"];
+            var navBtn = (Style)Application.Current!.Resources["NavBtn"];
+            var navActive = (Style)Application.Current!.Resources["NavActiveBtn"];
+
+            btnNavDashboard.Style = navBtn;
+            btnNavClients.Style   = navBtn;
+            btnNavWorkouts.Style  = navBtn;
+            btnNavSessions.Style  = navBtn;
+            btnNavGoals.Style     = navBtn;
+            btnNavReports.Style   = navBtn;
 
             contentArea.Children.Clear();
 
             switch (tab)
             {
                 case "dashboard":
-                    btnNavDashboard.Style = (Style)Application.Current!.Resources["NavActiveBtn"];
+                    btnNavDashboard.Style = navActive;
                     BuildDashboardView();
                     break;
+                case "clients":
+                    btnNavClients.Style = navActive;
+                    BuildClientsView();
+                    break;
                 case "workouts":
-                    btnNavWorkouts.Style = (Style)Application.Current!.Resources["NavActiveBtn"];
+                    btnNavWorkouts.Style = navActive;
                     BuildWorkoutsView();
                     break;
                 case "sessions":
-                    btnNavSessions.Style = (Style)Application.Current!.Resources["NavActiveBtn"];
+                    btnNavSessions.Style = navActive;
                     BuildSessionsView();
                     break;
+                case "goals":
+                    btnNavGoals.Style = navActive;
+                    BuildGoalsView();
+                    break;
                 case "reports":
-                    btnNavReports.Style = (Style)Application.Current!.Resources["NavActiveBtn"];
+                    btnNavReports.Style = navActive;
                     BuildReportsView();
                     break;
             }
@@ -248,6 +252,132 @@ namespace DigitalHealthTrainer.Forms
         }
 
         // ===================================================================
+        // CLIENTS TAB — Assign / Remove Clients
+        // ===================================================================
+        private void BuildClientsView()
+        {
+            try
+            {
+                contentArea.Children.Add(new Label
+                {
+                    Text = "👥 Client Management",
+                    FontSize = 24, FontAttributes = FontAttributes.Bold,
+                    TextColor = Color.FromArgb("#1E293B")
+                });
+
+                // ── Assigned Clients ─────────────────────────────────────────
+                var assignedClients = ClientService.GetAssignedClients(_trainer.TrainerId);
+
+                contentArea.Children.Add(new Label
+                {
+                    Text = $"Assigned Clients ({assignedClients.Count})",
+                    FontSize = 16, FontAttributes = FontAttributes.Bold,
+                    TextColor = Color.FromArgb("#334155"), Margin = new Thickness(0, 4, 0, 4)
+                });
+
+                if (!assignedClients.Any())
+                {
+                    contentArea.Children.Add(new Label
+                    {
+                        Text = "No clients assigned yet. Assign one from the list below.",
+                        TextColor = Color.FromArgb("#94A3B8"),
+                        HorizontalOptions = LayoutOptions.Center, Margin = new Thickness(0, 8)
+                    });
+                }
+                else
+                {
+                    var assignedStack = new VerticalStackLayout { Spacing = 6 };
+                    foreach (var client in assignedClients)
+                    {
+                        var row = BuildClientRow(client, isAssigned: true, onAction: () =>
+                        {
+                            AssignmentService.UnassignClient(_trainer.TrainerId, client.ClientId);
+                            SwitchTab("clients");
+                        });
+                        assignedStack.Children.Add(row);
+                    }
+                    contentArea.Children.Add(CreateCard(assignedStack, Color.FromArgb("#F0FDF4")));
+                }
+
+                // ── Unassigned Clients ───────────────────────────────────────
+                var unassigned = AssignmentService.GetUnassignedClients(_trainer.TrainerId);
+
+                contentArea.Children.Add(new Label
+                {
+                    Text = $"Available Clients ({unassigned.Count})",
+                    FontSize = 16, FontAttributes = FontAttributes.Bold,
+                    TextColor = Color.FromArgb("#334155"), Margin = new Thickness(0, 12, 0, 4)
+                });
+
+                if (!unassigned.Any())
+                {
+                    contentArea.Children.Add(new Label
+                    {
+                        Text = "All registered clients are already assigned to you.",
+                        TextColor = Color.FromArgb("#94A3B8"),
+                        HorizontalOptions = LayoutOptions.Center, Margin = new Thickness(0, 8)
+                    });
+                }
+                else
+                {
+                    var unassignedStack = new VerticalStackLayout { Spacing = 6 };
+                    foreach (var client in unassigned)
+                    {
+                        var row = BuildClientRow(client, isAssigned: false, onAction: () =>
+                        {
+                            AssignmentService.AssignClient(_trainer.TrainerId, client.ClientId);
+                            SwitchTab("clients");
+                        });
+                        unassignedStack.Children.Add(row);
+                    }
+                    contentArea.Children.Add(CreateCard(unassignedStack));
+                }
+            }
+            catch (Exception ex)
+            {
+                contentArea.Children.Add(new Label { Text = Lang.Get("connection_error") + ex.Message, TextColor = Colors.Red });
+            }
+        }
+
+        private Border BuildClientRow(Client client, bool isAssigned, Action onAction)
+        {
+            var grid = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitionCollection
+                {
+                    new ColumnDefinition(GridLength.Star),
+                    new ColumnDefinition(new GridLength(1.4, GridUnitType.Star)),
+                    new ColumnDefinition(GridLength.Auto)
+                },
+                Padding = new Thickness(12, 8)
+            };
+
+            grid.Add(new Label { Text = client.Username, FontSize = 14, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1E293B"), VerticalOptions = LayoutOptions.Center }, 0);
+            grid.Add(new Label { Text = client.Email, FontSize = 13, TextColor = Color.FromArgb("#64748B"), VerticalOptions = LayoutOptions.Center }, 1);
+
+            var btn = new Button
+            {
+                Text = isAssigned ? "✕ Remove" : "+ Assign to Me",
+                HeightRequest = 32, FontSize = 12,
+                Style = isAssigned
+                    ? (Style)Application.Current!.Resources["DangerBtn"]
+                    : (Style)Application.Current!.Resources["SuccessBtn"]
+            };
+            btn.Clicked += (s, e) => onAction();
+            grid.Add(btn, 2);
+
+            return new Border
+            {
+                BackgroundColor = isAssigned ? Color.FromArgb("#F0FDF4") : Colors.White,
+                Stroke = Color.FromArgb("#E2E8F0"),
+                StrokeThickness = 1,
+                StrokeShape = new RoundRectangle { CornerRadius = 8 },
+                Padding = 0, Margin = new Thickness(0, 2),
+                Content = grid
+            };
+        }
+
+        // ===================================================================
         // WORKOUTS TAB — Workout Program Management
         // ===================================================================
         private void BuildWorkoutsView()
@@ -263,7 +393,7 @@ namespace DigitalHealthTrainer.Forms
             foreach (var c in clients) pckClient.Items.Add(c.Username);
 
             var txtProgramName = new Entry { Placeholder = Lang.Get("program_name"), Style = (Style)Application.Current!.Resources["ModernEntry"] };
-            var txtDescription = new Editor { Placeholder = Lang.Get("description"), HeightRequest = 80, BackgroundColor = Color.FromArgb("#F1F5F9"), TextColor = Color.FromArgb("#1E293B") };
+            var txtDescription = new Editor { Placeholder = Lang.Get("description"), HeightRequest = 80, Style = (Style)Application.Current!.Resources["ModernEditor"] };
 
             var btnSave = new Button { Text = Lang.Get("save"), Style = (Style)Application.Current!.Resources["PrimaryBtn"] };
             var btnDelete = new Button { Text = Lang.Get("delete"), Style = (Style)Application.Current!.Resources["DangerBtn"] };
@@ -316,7 +446,7 @@ namespace DigitalHealthTrainer.Forms
                 var programs = WorkoutService.GetProgramsByClient(_trainer.TrainerId, client.ClientId);
                 if (!programs.Any()) return;
 
-                bool confirm = await DisplayAlertAsync(Lang.Get("confirm_delete"), Lang.Get("confirm_delete"), Lang.Get("yes"), Lang.Get("no"));
+                bool confirm = await DisplayAlert(Lang.Get("confirm_delete"), Lang.Get("confirm_delete"), Lang.Get("yes"), Lang.Get("no"));
                 if (confirm)
                 {
                     WorkoutService.DeleteProgram(programs.Last().ProgramId);
@@ -347,26 +477,49 @@ namespace DigitalHealthTrainer.Forms
         }
 
         // ===================================================================
-        // SESSIONS TAB — Virtual Session Management + DELEGATE Events
+        // SESSIONS TAB — Virtual Session Management + DELEGATE Events + Live Sessions
         // ===================================================================
         private void BuildSessionsView()
         {
             var clients = ClientService.GetAssignedClients(_trainer.TrainerId);
 
-            contentArea.Children.Add(new Label { Text = Lang.Get("sessions_title"), FontSize = 24, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1E293B") });
+            contentArea.Children.Add(new Label
+            {
+                Text = Lang.Get("sessions_title"),
+                FontSize = 24, FontAttributes = FontAttributes.Bold,
+                TextColor = Color.FromArgb("#1E293B")
+            });
 
-            var sessionsCollection = new CollectionView();
+            // ── Live Sessions Banner ─────────────────────────────────────────
+            var liveStack = new VerticalStackLayout { Spacing = 6 };
+            var liveBannerCard = CreateCard(liveStack, Color.FromArgb("#EDE9FE"));
+            liveBannerCard.Stroke = Color.FromArgb("#7C3AED");
+            liveBannerCard.StrokeThickness = 2;
+            contentArea.Children.Add(liveBannerCard);
 
-            // Filter
-            var filterGrid = new Grid { ColumnDefinitions = new ColumnDefinitionCollection { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) }, ColumnSpacing = 10 };
+            var sessionsCollection = new CollectionView { SelectionMode = SelectionMode.Single };
+
+            // ── Filters ──────────────────────────────────────────────────────
+            var filterGrid = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitionCollection
+                {
+                    new ColumnDefinition(GridLength.Star),
+                    new ColumnDefinition(GridLength.Star),
+                    new ColumnDefinition(GridLength.Auto)
+                },
+                ColumnSpacing = 10
+            };
+
             var pckClientFilter = new Picker { Title = Lang.Get("client_name"), TextColor = Color.FromArgb("#1E293B") };
-            pckClientFilter.Items.Add(Lang.Get("all_types"));
+            pckClientFilter.Items.Add(Lang.Get("all_clients"));
             foreach (var c in clients) pckClientFilter.Items.Add(c.Username);
             pckClientFilter.SelectedIndex = 0;
 
             var pckStatus = new Picker { Title = Lang.Get("status"), TextColor = Color.FromArgb("#1E293B") };
             pckStatus.Items.Add(Lang.Get("all_types"));
             pckStatus.Items.Add("scheduled");
+            pckStatus.Items.Add("in_progress");
             pckStatus.Items.Add("completed");
             pckStatus.Items.Add("canceled");
             pckStatus.SelectedIndex = 0;
@@ -377,22 +530,69 @@ namespace DigitalHealthTrainer.Forms
             filterGrid.Add(pckStatus, 1);
             filterGrid.Add(btnRefreshSessions, 2);
             contentArea.Children.Add(CreateCard(filterGrid));
-
-            // Session list
             contentArea.Children.Add(CreateCard(sessionsCollection));
 
-            // Action buttons
-            var actionGrid = new Grid { ColumnDefinitions = new ColumnDefinitionCollection { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 10 };
-            var btnComplete = new Button { Text = Lang.Get("mark_completed"), Style = (Style)Application.Current!.Resources["SuccessBtn"] };
-            var btnCancel = new Button { Text = Lang.Get("cancel_session"), Style = (Style)Application.Current!.Resources["DangerBtn"] };
-            actionGrid.Add(btnComplete, 0);
-            actionGrid.Add(btnCancel, 1);
+            // ── Action Buttons ───────────────────────────────────────────────
+            var actionGrid = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitionCollection
+                {
+                    new ColumnDefinition(GridLength.Star),
+                    new ColumnDefinition(GridLength.Star),
+                    new ColumnDefinition(GridLength.Star)
+                },
+                ColumnSpacing = 10
+            };
+            var btnStartLive = new Button { Text = "🔴 Start Live", Style = (Style)Application.Current!.Resources["PrimaryBtn"], BackgroundColor = Color.FromArgb("#7C3AED") };
+            var btnComplete  = new Button { Text = Lang.Get("mark_completed"), Style = (Style)Application.Current!.Resources["SuccessBtn"] };
+            var btnCancel    = new Button { Text = Lang.Get("cancel_session"), Style = (Style)Application.Current!.Resources["DangerBtn"] };
+            actionGrid.Add(btnStartLive, 0);
+            actionGrid.Add(btnComplete, 1);
+            actionGrid.Add(btnCancel, 2);
             contentArea.Children.Add(actionGrid);
 
-            // Load sessions (LINQ QUERY #2 — filtering)
+            // ── Load Sessions (LINQ QUERY #2 — filtering) ───────────────────
             void LoadSessions()
             {
-                var allSessions = SessionService.GetSessionsByTrainer(_trainer.TrainerId, clients);
+                List<SessionDisplay> allSessions;
+                try { allSessions = SessionService.GetSessionsByTrainer(_trainer.TrainerId, clients); }
+                catch (Exception ex)
+                {
+                    sessionsCollection.ItemsSource = null;
+                    liveStack.Children.Clear();
+                    liveBannerCard.IsVisible = false;
+                    _ = DisplayAlert(Lang.Get("connection_error"), ex.Message, "OK");
+                    return;
+                }
+
+                // Live sessions banner
+                liveStack.Children.Clear();
+                var liveSessions = allSessions.Where(s => s.Status == "in_progress").ToList();
+                if (liveSessions.Any())
+                {
+                    liveBannerCard.IsVisible = true;
+                    liveStack.Children.Add(new Label
+                    {
+                        Text = $"🔴  {liveSessions.Count} LIVE SESSION{(liveSessions.Count > 1 ? "S" : "")} IN PROGRESS",
+                        FontSize = 16, FontAttributes = FontAttributes.Bold,
+                        TextColor = Color.FromArgb("#5B21B6")
+                    });
+                    foreach (var live in liveSessions)
+                    {
+                        var liveRow = new HorizontalStackLayout { Spacing = 12, Margin = new Thickness(0, 4, 0, 0) };
+                        liveRow.Children.Add(new Label { Text = "▶", FontSize = 14, TextColor = Color.FromArgb("#7C3AED"), VerticalOptions = LayoutOptions.Center });
+                        liveRow.Children.Add(new Label
+                        {
+                            Text = $"{live.ClientName}  ·  started {live.SessionTimeDisplay}  ·  {live.DurationMinutes} min",
+                            FontSize = 13, TextColor = Color.FromArgb("#4C1D95"), VerticalOptions = LayoutOptions.Center
+                        });
+                        liveStack.Children.Add(liveRow);
+                    }
+                }
+                else
+                {
+                    liveBannerCard.IsVisible = false;
+                }
 
                 // LINQ filtering
                 var filtered = allSessions.AsEnumerable();
@@ -418,32 +618,41 @@ namespace DigitalHealthTrainer.Forms
                             new ColumnDefinition(GridLength.Star),
                             new ColumnDefinition(GridLength.Star),
                             new ColumnDefinition(new GridLength(0.6, GridUnitType.Star)),
-                            new ColumnDefinition(new GridLength(0.8, GridUnitType.Star))
+                            new ColumnDefinition(new GridLength(0.9, GridUnitType.Star))
                         },
-                        Padding = new Thickness(12, 8)
+                        Padding = new Thickness(12, 10)
                     };
-                    var clientLabel = new Label { FontSize = 13, TextColor = Color.FromArgb("#1E293B"), VerticalOptions = LayoutOptions.Center };
+
+                    var clientLabel = new Label { FontSize = 13, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1E293B"), VerticalOptions = LayoutOptions.Center };
                     clientLabel.SetBinding(Label.TextProperty, "ClientName");
+
                     var timeLabel = new Label { FontSize = 13, TextColor = Color.FromArgb("#64748B"), VerticalOptions = LayoutOptions.Center };
                     timeLabel.SetBinding(Label.TextProperty, "SessionTimeDisplay");
+
                     var durLabel = new Label { FontSize = 13, TextColor = Color.FromArgb("#64748B"), VerticalOptions = LayoutOptions.Center };
-                    durLabel.SetBinding(Label.TextProperty, "DurationMinutes");
+                    durLabel.SetBinding(Label.TextProperty, "DurationMinutes", stringFormat: "{0} min");
+
                     var statusLabel = new Label { FontSize = 13, FontAttributes = FontAttributes.Bold, VerticalOptions = LayoutOptions.Center };
                     statusLabel.SetBinding(Label.TextProperty, "StatusDisplay");
                     statusLabel.SetBinding(Label.TextColorProperty, "StatusColor");
 
-                    grid.Add(clientLabel, 0); grid.Add(timeLabel, 1); grid.Add(durLabel, 2); grid.Add(statusLabel, 3);
+                    grid.Add(clientLabel, 0);
+                    grid.Add(timeLabel, 1);
+                    grid.Add(durLabel, 2);
+                    grid.Add(statusLabel, 3);
 
-                    return new Border
+                    var border = new Border
                     {
-                        Stroke = Colors.Transparent,
+                        Stroke = Color.FromArgb("#E2E8F0"),
+                        StrokeThickness = 1,
                         StrokeShape = new RoundRectangle { CornerRadius = 8 },
                         Padding = 0, Margin = new Thickness(0, 2),
                         Content = grid
                     };
+                    border.SetBinding(Border.BackgroundColorProperty, new Binding("IsLive",
+                        converter: new LiveColorConverter()));
+                    return border;
                 });
-
-                sessionsCollection.SelectionMode = SelectionMode.Single;
             }
 
             LoadSessions();
@@ -451,10 +660,29 @@ namespace DigitalHealthTrainer.Forms
             pckClientFilter.SelectedIndexChanged += (s, e) => LoadSessions();
             pckStatus.SelectedIndexChanged += (s, e) => LoadSessions();
 
+            // Start Live — DELEGATE event fire
+            btnStartLive.Clicked += async (s, e) =>
+            {
+                if (sessionsCollection.SelectedItem is not SessionDisplay session)
+                {
+                    await DisplayAlert("Start Live", "Please select a session from the list first.", "OK");
+                    return;
+                }
+                if (session.Status != "scheduled")
+                {
+                    await DisplayAlert("Start Live", $"Only 'scheduled' sessions can be started. Selected session is '{session.StatusDisplay}'.", "OK");
+                    return;
+                }
+                SessionService.UpdateSessionStatus(session.SessionId, "in_progress");
+                NotificationService.NotifySessionStarted(session.SessionId, session.ClientName, session.SessionTime);
+                LoadSessions();
+            };
+
             // Complete — DELEGATE event fire
             btnComplete.Clicked += (s, e) =>
             {
-                if (sessionsCollection.SelectedItem is SessionDisplay session && session.Status == "scheduled")
+                if (sessionsCollection.SelectedItem is SessionDisplay session &&
+                    (session.Status == "scheduled" || session.Status == "in_progress"))
                 {
                     SessionService.UpdateSessionStatus(session.SessionId, "completed");
                     NotificationService.NotifySessionCompleted(session.SessionId, session.ClientName, session.SessionTime);
@@ -465,12 +693,165 @@ namespace DigitalHealthTrainer.Forms
             // Cancel — DELEGATE event fire
             btnCancel.Clicked += (s, e) =>
             {
-                if (sessionsCollection.SelectedItem is SessionDisplay session && session.Status == "scheduled")
+                if (sessionsCollection.SelectedItem is SessionDisplay session &&
+                    (session.Status == "scheduled" || session.Status == "in_progress"))
                 {
                     SessionService.UpdateSessionStatus(session.SessionId, "canceled");
                     NotificationService.NotifySessionCanceled(session.SessionId, session.ClientName, session.SessionTime);
                     LoadSessions();
                 }
+            };
+        }
+
+        // ===================================================================
+        // GOALS TAB — Set / View Goals per Client
+        // ===================================================================
+        private void BuildGoalsView()
+        {
+            var clients = ClientService.GetAssignedClients(_trainer.TrainerId);
+
+            contentArea.Children.Add(new Label
+            {
+                Text = "🎯 " + Lang.Get("goals_title"),
+                FontSize = 24, FontAttributes = FontAttributes.Bold,
+                TextColor = Color.FromArgb("#1E293B")
+            });
+
+            // ── Create Goal Form ──────────────────────────────────────────────
+            var formStack = new VerticalStackLayout { Spacing = 8 };
+
+            var pckClient = new Picker { Title = Lang.Get("select_client"), TextColor = Color.FromArgb("#1E293B") };
+            foreach (var c in clients) pckClient.Items.Add(c.Username);
+
+            var pckGoalType = new Picker { Title = Lang.Get("goal_type"), TextColor = Color.FromArgb("#1E293B") };
+            pckGoalType.Items.Add("weight_loss");
+            pckGoalType.Items.Add("strength_target");
+            pckGoalType.Items.Add("weekly_exercise_frequency");
+            pckGoalType.Items.Add("calorie_target");
+
+            var txtTarget  = new Entry { Placeholder = Lang.Get("target_value"), Keyboard = Keyboard.Numeric, Style = (Style)Application.Current!.Resources["ModernEntry"] };
+            var dpDeadline = new DatePicker { Date = DateTime.Today.AddMonths(1), TextColor = Color.FromArgb("#1E293B"), BackgroundColor = Color.FromArgb("#F1F5F9") };
+            var btnCreate  = new Button { Text = Lang.Get("create_goal"), Style = (Style)Application.Current!.Resources["PrimaryBtn"] };
+
+            formStack.Children.Add(new Label { Text = Lang.Get("select_client"), TextColor = Color.FromArgb("#64748B"), FontSize = 13 });
+            formStack.Children.Add(pckClient);
+            formStack.Children.Add(new Label { Text = Lang.Get("goal_type"),     TextColor = Color.FromArgb("#64748B"), FontSize = 13 });
+            formStack.Children.Add(pckGoalType);
+
+            var targetRow = new Grid { ColumnDefinitions = new ColumnDefinitionCollection { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) }, ColumnSpacing = 10 };
+            var targetCol = new VerticalStackLayout { Spacing = 4 };
+            targetCol.Children.Add(new Label { Text = Lang.Get("target_value"), TextColor = Color.FromArgb("#64748B"), FontSize = 13 });
+            targetCol.Children.Add(txtTarget);
+            var deadlineCol = new VerticalStackLayout { Spacing = 4 };
+            deadlineCol.Children.Add(new Label { Text = Lang.Get("deadline") + " (optional)", TextColor = Color.FromArgb("#64748B"), FontSize = 13 });
+            deadlineCol.Children.Add(dpDeadline);
+            targetRow.Add(targetCol,   0);
+            targetRow.Add(deadlineCol, 1);
+            formStack.Children.Add(targetRow);
+            formStack.Children.Add(btnCreate);
+
+            contentArea.Children.Add(CreateCard(formStack));
+
+            // ── Goals List ────────────────────────────────────────────────────
+            var goalsListStack = new VerticalStackLayout { Spacing = 4 };
+            var goalsHeader = new Label
+            {
+                Text = Lang.Get("client_goals"),
+                FontSize = 16, FontAttributes = FontAttributes.Bold,
+                TextColor = Color.FromArgb("#334155"), Margin = new Thickness(0, 0, 0, 8)
+            };
+            goalsListStack.Children.Add(goalsHeader);
+            var goalsCard = CreateCard(goalsListStack);
+            contentArea.Children.Add(goalsCard);
+
+            void LoadGoals()
+            {
+                if (pckClient.SelectedIndex < 0 || pckClient.SelectedIndex >= clients.Count) return;
+                var client = clients[pckClient.SelectedIndex];
+                var goals  = GoalService.GetGoalsForClient(client.ClientId);
+
+                while (goalsListStack.Children.Count > 1)
+                    goalsListStack.Children.RemoveAt(goalsListStack.Children.Count - 1);
+
+                if (!goals.Any())
+                {
+                    goalsListStack.Children.Add(new Label
+                    {
+                        Text = Lang.Get("no_goals"),
+                        TextColor = Color.FromArgb("#94A3B8"),
+                        HorizontalOptions = LayoutOptions.Center, Margin = new Thickness(0, 12)
+                    });
+                    return;
+                }
+
+                foreach (var goal in goals)
+                {
+                    var unit = goal.GoalType switch
+                    {
+                        "weight_loss"                => "kg",
+                        "weekly_exercise_frequency"  => "sessions/wk",
+                        "calorie_target"             => "kcal",
+                        _                            => ""
+                    };
+
+                    var rowGrid = new Grid
+                    {
+                        ColumnDefinitions = new ColumnDefinitionCollection
+                        {
+                            new ColumnDefinition(new GridLength(1.3, GridUnitType.Star)),
+                            new ColumnDefinition(GridLength.Star),
+                            new ColumnDefinition(GridLength.Star),
+                            new ColumnDefinition(new GridLength(0.9, GridUnitType.Star)),
+                            new ColumnDefinition(GridLength.Auto)
+                        },
+                        Padding = new Thickness(10, 8)
+                    };
+
+                    var typeLabel = goal.GoalType.Replace("_", " ");
+                    typeLabel = char.ToUpper(typeLabel[0]) + typeLabel[1..];
+
+                    rowGrid.Add(new Label { Text = typeLabel,                         FontSize = 13, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1E293B"), VerticalOptions = LayoutOptions.Center }, 0);
+                    rowGrid.Add(new Label { Text = $"Target: {goal.TargetValue} {unit}",  FontSize = 12, TextColor = Color.FromArgb("#64748B"), VerticalOptions = LayoutOptions.Center }, 1);
+                    rowGrid.Add(new Label { Text = $"Current: {goal.CurrentValue?.ToString() ?? "—"}", FontSize = 12, TextColor = Color.FromArgb("#64748B"), VerticalOptions = LayoutOptions.Center }, 2);
+
+                    var statusColor = goal.Status switch
+                    {
+                        "completed"   => Color.FromArgb("#059669"),
+                        "missed"      => Color.FromArgb("#DC2626"),
+                        _             => Color.FromArgb("#D97706")
+                    };
+                    rowGrid.Add(new Label { Text = (goal.Status ?? "in_progress").Replace("_", " ").ToUpper(), FontSize = 11, FontAttributes = FontAttributes.Bold, TextColor = statusColor, VerticalOptions = LayoutOptions.Center }, 3);
+
+                    var delBtn = new Button { Text = "✕", HeightRequest = 32, WidthRequest = 36, FontSize = 11, Style = (Style)Application.Current!.Resources["DangerBtn"] };
+                    var gid    = goal.GoalId;
+                    delBtn.Clicked += (s, e) => { GoalService.DeleteGoal(gid); LoadGoals(); };
+                    rowGrid.Add(delBtn, 4);
+
+                    goalsListStack.Children.Add(new Border
+                    {
+                        Stroke = Color.FromArgb("#E2E8F0"), StrokeThickness = 1,
+                        StrokeShape = new RoundRectangle { CornerRadius = 6 },
+                        Padding = 0, Margin = new Thickness(0, 2),
+                        Content = rowGrid
+                    });
+                }
+            }
+
+            pckClient.SelectedIndexChanged += (s, e) => LoadGoals();
+
+            btnCreate.Clicked += (s, e) =>
+            {
+                if (pckClient.SelectedIndex < 0 || pckClient.SelectedIndex >= clients.Count) return;
+                if (pckGoalType.SelectedIndex < 0) return;
+                if (!decimal.TryParse(txtTarget.Text, out var targetVal) || targetVal <= 0) return;
+
+                var client   = clients[pckClient.SelectedIndex];
+                var goalType = pckGoalType.Items[pckGoalType.SelectedIndex];
+                GoalService.CreateGoal(client.ClientId, goalType, targetVal, dpDeadline.Date);
+
+                txtTarget.Text         = "";
+                pckGoalType.SelectedIndex = -1;
+                LoadGoals();
             };
         }
 
@@ -490,8 +871,8 @@ namespace DigitalHealthTrainer.Forms
             foreach (var c in clients) pckClient.Items.Add(c.Username);
             if (clients.Any()) pckClient.SelectedIndex = 0;
 
-            var dpFrom = new DatePicker { Date = DateTime.Today.AddDays(-30) };
-            var dpTo = new DatePicker { Date = DateTime.Today };
+            var dpFrom = new DatePicker { Date = DateTime.Today.AddDays(-30), TextColor = Color.FromArgb("#1E293B"), BackgroundColor = Color.FromArgb("#F1F5F9") };
+            var dpTo   = new DatePicker { Date = DateTime.Today,              TextColor = Color.FromArgb("#1E293B"), BackgroundColor = Color.FromArgb("#F1F5F9") };
             var btnGenerate = new Button { Text = Lang.Get("generate_report"), Style = (Style)Application.Current!.Resources["PrimaryBtn"] };
 
             filterGrid.Add(pckClient, 0); filterGrid.Add(dpFrom, 1); filterGrid.Add(dpTo, 2); filterGrid.Add(btnGenerate, 3);

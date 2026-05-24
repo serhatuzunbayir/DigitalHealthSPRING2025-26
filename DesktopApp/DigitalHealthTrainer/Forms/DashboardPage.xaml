@@ -26,23 +26,14 @@
             <VerticalStackLayout Grid.Row="2" Spacing="4">
                 <Label Text="MENU" FontSize="10" TextColor="#475569" FontAttributes="Bold" Margin="8,0,0,6"/>
                 <Button x:Name="btnNavDashboard" Text="📊 Dashboard" Style="{StaticResource NavActiveBtn}"/>
+                <Button x:Name="btnNavClients"  Text="👥 Clients"  Style="{StaticResource NavBtn}"/>
                 <Button x:Name="btnNavWorkouts" Text="🏋️ Workouts" Style="{StaticResource NavBtn}"/>
                 <Button x:Name="btnNavSessions" Text="📅 Sessions" Style="{StaticResource NavBtn}"/>
-                <Button x:Name="btnNavReports" Text="📈 Reports" Style="{StaticResource NavBtn}"/>
+                <Button x:Name="btnNavGoals"    Text="🎯 Goals"    Style="{StaticResource NavBtn}"/>
+                <Button x:Name="btnNavReports"  Text="📈 Reports"  Style="{StaticResource NavBtn}"/>
             </VerticalStackLayout>
 
             <VerticalStackLayout Grid.Row="3" Spacing="8">
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="🌐" TextColor="{StaticResource TextMuted}" VerticalOptions="Center"/>
-                    <Picker x:Name="pckLanguage" WidthRequest="130" SelectedIndex="0" TextColor="White">
-                        <Picker.ItemsSource>
-                            <x:Array Type="{x:Type x:String}">
-                                <x:String>English</x:String>
-                                <x:String>Türkçe</x:String>
-                            </x:Array>
-                        </Picker.ItemsSource>
-                    </Picker>
-                </HorizontalStackLayout>
                 <Button x:Name="btnLogout" Text="🚪 Logout" Style="{StaticResource NavBtn}" TextColor="#F87171"/>
             </VerticalStackLayout>
         </Grid>

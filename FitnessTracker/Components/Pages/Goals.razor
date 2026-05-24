@@ -15,7 +15,7 @@ else
     <div class="page-header">
         <div>
             <h1>Fitness Goals</h1>
-            <p class="subtitle">Set targets and track your progress</p>
+            <p class="subtitle">Your goals — including those assigned by your trainer</p>
         </div>
         <button class="btn-primary" @onclick="() => showForm = !showForm">
             @(showForm ? "✕ Cancel" : "+ New Goal")
@@ -34,6 +34,7 @@ else
                         <option value="weight_loss">Weight Loss</option>
                         <option value="strength_target">Strength Target</option>
                         <option value="weekly_exercise_frequency">Weekly Exercise Frequency</option>
+                        <option value="calorie_target">Calorie Target</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -130,6 +131,6 @@ else
     }
 
     static string StatusClass(string? status) => status switch { "completed" => "status-green", "missed" => "status-red", _ => "status-yellow" };
-    static string FormatGoalType(string t) => t switch { "weight_loss" => "Weight Loss", "strength_target" => "Strength Target", "weekly_exercise_frequency" => "Weekly Frequency", _ => t };
-    static string GoalUnit(string t) => t switch { "weight_loss" => "kg", "weekly_exercise_frequency" => "sessions/wk", _ => "" };
+    static string FormatGoalType(string t) => t switch { "weight_loss" => "Weight Loss", "strength_target" => "Strength Target", "weekly_exercise_frequency" => "Weekly Frequency", "calorie_target" => "Calorie Target", _ => t };
+    static string GoalUnit(string t) => t switch { "weight_loss" => "kg", "weekly_exercise_frequency" => "sessions/wk", "calorie_target" => "kcal", _ => "" };
 }

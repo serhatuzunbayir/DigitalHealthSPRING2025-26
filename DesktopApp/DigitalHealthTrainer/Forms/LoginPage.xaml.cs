@@ -13,35 +13,6 @@ namespace DigitalHealthTrainer.Forms
             InitializeComponent();
             btnLogin.Clicked += BtnLogin_Click;
             btnRegister.Clicked += BtnRegister_Click;
-            pckLanguage.SelectedIndexChanged += PckLanguage_Changed;
-        }
-
-        private void PckLanguage_Changed(object? sender, EventArgs e)
-        {
-            Lang.Current = pckLanguage.SelectedIndex == 0 ? AppLanguage.English : AppLanguage.Turkish;
-            UpdateTexts();
-        }
-
-        private void UpdateTexts()
-        {
-            lblLanguage.Text = Lang.Get("language");
-            lblUsername.Text = Lang.Get("username");
-            lblPassword.Text = Lang.Get("password");
-            lblEmail.Text = Lang.Get("email");
-            lblStatus.Text = "";
-
-            if (isRegisterMode)
-            {
-                lblTitle.Text = Lang.Get("register_title");
-                btnLogin.Text = Lang.Get("back");
-                btnRegister.Text = Lang.Get("btn_register");
-            }
-            else
-            {
-                lblTitle.Text = Lang.Get("login_title");
-                btnLogin.Text = Lang.Get("btn_login");
-                btnRegister.Text = Lang.Get("btn_register");
-            }
         }
 
         private async void BtnLogin_Click(object? sender, EventArgs e)

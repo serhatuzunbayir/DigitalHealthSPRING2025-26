@@ -4,15 +4,20 @@ namespace DigitalHealthTrainer.Data
 {
     public static class DatabaseHelper
     {
-        private static readonly string _connectionString =
-            "Host=92.249.61.114;Port=5432;Database=postgres;Username=admin;Password=secret123";
+        private static string _connectionString = string.Empty;
+
+        public static void Initialize(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
 
         public static NpgsqlConnection GetConnection()
         {
+            if (string.IsNullOrEmpty(_connectionString))
+                throw new InvalidOperationException("DatabaseHelper has not been initialized. Call Initialize() first.");
             return new NpgsqlConnection(_connectionString);
         }
 
-        // Bağlantıyı test etmek için
         public static bool TestConnection()
         {
             try

@@ -97,6 +97,21 @@ else
             </div>
 
             <div class="side-panel">
+                @if (myTrainer != null)
+                {
+                    <div class="card trainer-mini-card">
+                        <h2>My Trainer</h2>
+                        <div class="trainer-mini-row">
+                            <div class="trainer-mini-avatar">@myTrainer.Username[0].ToString().ToUpper()</div>
+                            <div>
+                                <div class="trainer-mini-name">@myTrainer.Username</div>
+                                <div class="trainer-mini-email">@myTrainer.Email</div>
+                            </div>
+                        </div>
+                        <a href="/trainer" class="btn-link trainer-link">View profile →</a>
+                    </div>
+                }
+
                 @if (stats.LatestWeight.HasValue || stats.LatestHeartRate.HasValue)
                 {
                     <div class="card metrics-card">
@@ -155,6 +170,7 @@ else
 
 @code {
     DashboardStats? stats;
+    Trainer? myTrainer;
     bool _ready = false;
 
     string Greeting => DateTime.Now.Hour < 12 ? "morning" : DateTime.Now.Hour < 18 ? "afternoon" : "evening";
@@ -167,7 +183,9 @@ else
         await State.LoadFromSessionAsync();
         _ready = true;
         if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
-        stats = await Fitness.GetDashboardStatsAsync(State.CurrentClient!.ClientId);
+        var cid = State.CurrentClient!.ClientId;
+        stats     = await Fitness.GetDashboardStatsAsync(cid);
+        myTrainer = await Fitness.GetMyTrainerAsync(cid);
         StateHasChanged();
     }
 }

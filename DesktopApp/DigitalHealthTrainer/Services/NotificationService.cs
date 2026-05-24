@@ -9,6 +9,7 @@ namespace DigitalHealthTrainer.Services
         public static event SessionNotificationHandler? OnSessionCreated;
         public static event SessionNotificationHandler? OnSessionCanceled;
         public static event SessionNotificationHandler? OnSessionCompleted;
+        public static event SessionNotificationHandler? OnSessionStarted;
 
         // Yeni session oluşturulduğunda bildirim gönder
         public static void NotifySessionCreated(int sessionId, string clientName, DateTime sessionTime)
@@ -45,6 +46,20 @@ namespace DigitalHealthTrainer.Services
             {
                 string message = $"Session completed for {clientName} ({sessionTime:dd/MM/yyyy HH:mm})";
                 OnSessionCompleted?.Invoke(message, sessionId, "completed");
+            }
+            catch (Exception)
+            {
+                // Bildirim hatası uygulamayı kesmemeli
+            }
+        }
+
+        // Live session başladığında bildirim gönder
+        public static void NotifySessionStarted(int sessionId, string clientName, DateTime sessionTime)
+        {
+            try
+            {
+                string message = $"🔴 LIVE session started with {clientName} at {sessionTime:HH:mm}";
+                OnSessionStarted?.Invoke(message, sessionId, "in_progress");
             }
             catch (Exception)
             {

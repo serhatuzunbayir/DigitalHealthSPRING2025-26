@@ -5,56 +5,51 @@
              BackgroundColor="{StaticResource PageBg}"
              Title="Digital Health Trainer">
 
-    <Grid RowDefinitions="Auto,*" Padding="0">
+    <!-- Login Card -->
+    <Border BackgroundColor="White"
+            Stroke="{StaticResource Border}" StrokeThickness="1"
+            StrokeShape="RoundRectangle 16"
+            Padding="36,32" Margin="60,40" VerticalOptions="Center"
+            MaximumWidthRequest="420" HorizontalOptions="Center">
+        <Border.Shadow>
+            <Shadow Brush="#20000000" Offset="0,4" Radius="16" Opacity="0.35"/>
+        </Border.Shadow>
+        <VerticalStackLayout Spacing="10">
+            <!-- Header -->
+            <Label Text="💪" FontSize="44" HorizontalOptions="Center"/>
+            <Label x:Name="lblTitle" Text="Trainer Login" FontSize="26" FontAttributes="Bold"
+                   TextColor="{StaticResource Primary}" HorizontalOptions="Center"/>
+            <Label Text="Digital Health &amp; Fitness Tracker" FontSize="13"
+                   TextColor="{StaticResource TextMuted}" HorizontalOptions="Center" Margin="0,0,0,14"/>
 
-        <!-- Language Selector -->
-        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="End" Spacing="6" Padding="0,12,20,0">
-            <Label x:Name="lblLanguage" Text="Language:" TextColor="{StaticResource TextSecondary}"
-                   VerticalOptions="Center"/>
-            <Picker x:Name="pckLanguage" WidthRequest="110" SelectedIndex="0" TextColor="{StaticResource TextPrimary}">
-                <Picker.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>English</x:String>
-                        <x:String>Türkçe</x:String>
-                    </x:Array>
-                </Picker.ItemsSource>
-            </Picker>
-        </HorizontalStackLayout>
+            <!-- Username -->
+            <Label x:Name="lblUsername" Text="Username" TextColor="{StaticResource TextSecondary}"
+                   FontSize="13" FontAttributes="Bold" Margin="2,0,0,2"/>
+            <Entry x:Name="txtUsername" Placeholder="Enter your username"
+                   Style="{StaticResource ModernEntry}"/>
 
-        <!-- Login Card -->
-        <Border Grid.Row="1" BackgroundColor="White"
-                Stroke="{StaticResource Border}" StrokeThickness="1"
-                StrokeShape="RoundRectangle 12"
-                Padding="30" Margin="60,10,60,40" VerticalOptions="Center"
-                MaximumWidthRequest="400" HorizontalOptions="Center">
-            <Border.Shadow>
-                <Shadow Brush="#20000000" Offset="0,2" Radius="8" Opacity="0.3"/>
-            </Border.Shadow>
-            <VerticalStackLayout Spacing="8">
-                <Label Text="💪" FontSize="40" HorizontalOptions="Center"/>
-                <Label x:Name="lblTitle" Text="Trainer Login" FontSize="24" FontAttributes="Bold"
-                       TextColor="{StaticResource Primary}" HorizontalOptions="Center"/>
-                <Label Text="Digital Health &amp; Fitness Tracker" FontSize="12"
-                       TextColor="{StaticResource TextMuted}" HorizontalOptions="Center" Margin="0,0,0,10"/>
+            <!-- Password -->
+            <Label x:Name="lblPassword" Text="Password" TextColor="{StaticResource TextSecondary}"
+                   FontSize="13" FontAttributes="Bold" Margin="2,6,0,2"/>
+            <Entry x:Name="txtPassword" Placeholder="Enter your password" IsPassword="True"
+                   Style="{StaticResource ModernEntry}"/>
 
-                <Label x:Name="lblUsername" Text="Username:" TextColor="{StaticResource TextSecondary}" FontSize="13"/>
-                <Entry x:Name="txtUsername" Placeholder="Enter your username" Style="{StaticResource ModernEntry}"/>
+            <!-- Email (register mode only) -->
+            <Label x:Name="lblEmail" Text="E-mail" TextColor="{StaticResource TextSecondary}"
+                   FontSize="13" FontAttributes="Bold" Margin="2,6,0,2" IsVisible="False"/>
+            <Entry x:Name="txtEmail" Placeholder="Enter your e-mail" IsVisible="False"
+                   Style="{StaticResource ModernEntry}"/>
 
-                <Label x:Name="lblPassword" Text="Password:" TextColor="{StaticResource TextSecondary}" FontSize="13"/>
-                <Entry x:Name="txtPassword" Placeholder="Enter your password" IsPassword="True" Style="{StaticResource ModernEntry}"/>
+            <!-- Buttons -->
+            <Grid ColumnDefinitions="*,12,*" Margin="0,16,0,0">
+                <Button x:Name="btnLogin" Grid.Column="0" Text="Login"
+                        Style="{StaticResource PrimaryBtn}" HeightRequest="46"/>
+                <Button x:Name="btnRegister" Grid.Column="2" Text="Register"
+                        Style="{StaticResource SuccessBtn}" HeightRequest="46"/>
+            </Grid>
 
-                <Label x:Name="lblEmail" Text="E-mail:" TextColor="{StaticResource TextSecondary}" FontSize="13" IsVisible="False"/>
-                <Entry x:Name="txtEmail" Placeholder="Enter your e-mail" IsVisible="False" Style="{StaticResource ModernEntry}"/>
-
-                <Grid ColumnDefinitions="*,12,*" Margin="0,12,0,0">
-                    <Button x:Name="btnLogin" Grid.Column="0" Text="Login"
-                            Style="{StaticResource PrimaryBtn}" HeightRequest="44"/>
-                    <Button x:Name="btnRegister" Grid.Column="2" Text="Register"
-                            Style="{StaticResource SuccessBtn}" HeightRequest="44"/>
-                </Grid>
-
-                <Label x:Name="lblStatus" Text="" FontSize="12" HorizontalOptions="Center" Margin="0,6,0,0"/>
-            </VerticalStackLayout>
-        </Border>
-    </Grid>
+            <Label x:Name="lblStatus" Text="" FontSize="12" HorizontalOptions="Center"
+                   Margin="0,4,0,0"/>
+        </VerticalStackLayout>
+    </Border>
 </ContentPage>

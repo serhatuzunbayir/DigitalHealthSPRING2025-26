@@ -1,0 +1,113 @@
+@page "/trainer"
+@using FitnessTracker.Services
+@using FitnessTracker.Models
+@inject FitnessService Fitness
+@inject ClientStateService State
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>My Trainer – FitTrack</PageTitle>
+
+@if (!_ready) { <div class="skeleton-card"></div> }
+else if (!State.IsLoggedIn) { <div class="skeleton-card"></div> }
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>My Trainer</h1>
+            <p class="subtitle">Your assigned personal trainer</p>
+        </div>
+    </div>
+
+    @if (trainer == null)
+    {
+        <div class="empty-state">
+            <span>🏋️</span>
+            <p>You don't have an assigned trainer yet.</p>
+            <p class="empty-hint">Contact the admin or wait for a trainer to assign you.</p>
+        </div>
+    }
+    else
+    {
+        <div class="trainer-profile-card card">
+            <div class="trainer-avatar-row">
+                <div class="trainer-avatar-large">@trainer.Username[0].ToString().ToUpper()</div>
+                <div class="trainer-info-block">
+                    <h2 class="trainer-name">@trainer.Username</h2>
+                    <p class="trainer-email">✉️ @trainer.Email</p>
+                    <span class="trainer-badge">Personal Trainer</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="trainer-actions-grid">
+            <div class="card trainer-action-card">
+                <div class="action-icon">📅</div>
+                <h3>Schedule a Session</h3>
+                <p>Book a virtual training session with @trainer.Username</p>
+                <a href="/sessions" class="btn-primary">Go to Sessions →</a>
+            </div>
+            <div class="card trainer-action-card">
+                <div class="action-icon">📋</div>
+                <h3>My Programs</h3>
+                <p>View workout programs created by @trainer.Username</p>
+                <a href="/programs" class="btn-primary">View Programs →</a>
+            </div>
+            <div class="card trainer-action-card">
+                <div class="action-icon">🎯</div>
+                <h3>My Goals</h3>
+                <p>View goals assigned by @trainer.Username and track your progress</p>
+                <a href="/goals" class="btn-primary">View Goals →</a>
+            </div>
+        </div>
+
+        @if (upcomingSession != null)
+        {
+            <div class="card">
+                <h2>Upcoming Session with @trainer.Username</h2>
+                <div class="upcoming-session">
+                    <div class="session-date-block">
+                        <span class="session-day">@upcomingSession.SessionTime.ToLocalTime().ToString("dd")</span>
+                        <span class="session-month">@upcomingSession.SessionTime.ToLocalTime().ToString("MMM")</span>
+                    </div>
+                    <div class="session-details">
+                        <div class="session-time-text">@upcomingSession.SessionTime.ToLocalTime().ToString("HH:mm")</div>
+                        <div class="session-trainer-text">@upcomingSession.DurationMinutes min session</div>
+                        <span class="session-status-badge @StatusClass(upcomingSession.Status)">@upcomingSession.Status</span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    Trainer? trainer;
+    VirtualSession? upcomingSession;
+    bool _ready = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await State.LoadFromSessionAsync();
+        _ready = true;
+        if (!State.IsLoggedIn) { Nav.NavigateTo("/login"); return; }
+        var cid = State.CurrentClient!.ClientId;
+        trainer = await Fitness.GetMyTrainerAsync(cid);
+        if (trainer != null)
+        {
+            var sessions = await Fitness.GetSessionsAsync(cid);
+            upcomingSession = sessions.FirstOrDefault(s => s.Status == "scheduled" && s.SessionTime > DateTime.UtcNow);
+        }
+        StateHasChanged();
+    }
+
+    static string StatusClass(string status) => status switch
+    {
+        "scheduled"   => "badge-yellow",
+        "completed"   => "badge-green",
+        "canceled"    => "badge-red",
+        "in_progress" => "badge-live",
+        _             => ""
+    };
+}

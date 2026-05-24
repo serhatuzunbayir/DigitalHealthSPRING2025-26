@@ -686,3 +686,180 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .quick-btn-outline:hover { border-color: var(--accent); color: var(--text); background: transparent; }
 
 .greeting-time { color: var(--text-sub); font-weight: 400; }
+
+/* ── Trainer Mini Card (Dashboard) ──────────────────────────────────────── */
+.trainer-mini-card h2 { margin-bottom: 0.75rem; }
+.trainer-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.trainer-mini-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hi));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 1rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.trainer-mini-name { font-weight: 700; font-size: 0.9rem; }
+.trainer-mini-email { font-size: 0.75rem; color: var(--text-sub); }
+.trainer-link { display: inline-block; margin-top: 0.25rem; }
+
+/* ── Trainer Profile Page ────────────────────────────────────────────────── */
+.trainer-profile-card { margin-bottom: 1.5rem; }
+.trainer-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.trainer-avatar-large {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hi));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 2rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.trainer-info-block { display: flex; flex-direction: column; gap: 0.375rem; }
+.trainer-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.trainer-email { color: var(--text-sub); font-size: 0.9rem; }
+.trainer-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.trainer-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.trainer-action-card {
+  display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start;
+}
+.trainer-action-card .action-icon { font-size: 2rem; }
+.trainer-action-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+.trainer-action-card p { font-size: 0.85rem; color: var(--text-sub); flex: 1; }
+.trainer-action-card a.btn-primary {
+  display: inline-block; text-decoration: none;
+  padding: 0.5rem 1rem; font-size: 0.8rem;
+}
+
+/* ── Status Badges ───────────────────────────────────────────────────────── */
+.session-status-badge {
+  display: inline-block;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+.badge-green  { background: var(--green-dim); color: var(--green); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-red    { background: var(--red-dim); color: var(--red); }
+.badge-live   {
+  background: #2d1a5c;
+  color: var(--accent-hi);
+  animation: pulse-badge 1.5s ease-in-out infinite;
+}
+@keyframes pulse-badge { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+
+/* ── Exercises table improvements ───────────────────────────────────────── */
+.data-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.exercise-type-cell { display: flex; align-items: center; gap: 0.5rem; }
+.exercise-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── Goals improvements ─────────────────────────────────────────────────── */
+.goal-card { transition: transform 0.15s, box-shadow 0.15s; }
+.goal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.goal-completion-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: right;
+  margin-top: -0.5rem;
+}
+
+/* ── Health page improvements ───────────────────────────────────────────── */
+.health-trend-row {
+  display: flex; align-items: center; gap: 0.375rem;
+}
+.trend-up   { color: var(--red); font-size: 0.75rem; }
+.trend-down { color: var(--green); font-size: 0.75rem; }
+.trend-flat { color: var(--text-dim); font-size: 0.75rem; }
+
+/* ── Sessions live indicator ─────────────────────────────────────────────── */
+.session-card.status-live {
+  border-left: 4px solid var(--accent-hi);
+  background: linear-gradient(90deg, rgba(124,58,237,0.08), transparent);
+}
+.live-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent-hi);
+  margin-right: 4px;
+  animation: live-pulse 1s ease-in-out infinite;
+}
+@keyframes live-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.6; } }
+
+/* ── Live Session Banner (Sessions page) ─────────────────────────────────── */
+.live-session-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(109,40,217,0.08));
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  animation: live-banner-pulse 2.5s ease-in-out infinite;
+}
+@keyframes live-banner-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); }
+  50%      { box-shadow: 0 0 0 6px rgba(124,58,237,0.18); }
+}
+
+.live-banner-left { display: flex; align-items: center; gap: 0.875rem; }
+
+.live-banner-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent-hi);
+  flex-shrink: 0;
+  animation: live-pulse 1s ease-in-out infinite;
+}
+
+.live-banner-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; color: var(--accent-hi); }
+.live-banner-sub   { font-size: 0.85rem; color: var(--text-sub); margin-top: 0.15rem; }
+
+.live-banner-time {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-hi);
+  white-space: nowrap;
+}

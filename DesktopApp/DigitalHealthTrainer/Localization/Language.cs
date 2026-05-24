@@ -103,6 +103,16 @@ namespace DigitalHealthTrainer.Localization
             Add("status_completed", "Completed", "Tamamlandı");
             Add("mark_completed", "Mark as Completed", "Tamamlandı İşaretle");
             Add("cancel_session", "Cancel Session", "Seansı İptal Et");
+            Add("all_clients", "All Clients", "Tüm Danışanlar");
+
+            // ========== GOALS ==========
+            Add("goals_title", "Goal Management", "Hedef Yönetimi");
+            Add("goal_type", "Goal Type", "Hedef Tipi");
+            Add("target_value", "Target Value", "Hedef Değeri");
+            Add("deadline", "Deadline", "Son Tarih");
+            Add("create_goal", "Create Goal", "Hedef Oluştur");
+            Add("client_goals", "Client Goals", "Danışan Hedefleri");
+            Add("no_goals", "No goals set for this client.", "Bu danışan için hedef belirlenmemiş.");
 
             // ========== NOTIFICATIONS ==========
             Add("notification", "Notification", "Bildirim");

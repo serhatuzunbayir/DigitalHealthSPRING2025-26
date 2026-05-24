@@ -83,10 +83,11 @@ public class FitnessService
 
         goal.Status = goal.GoalType switch
         {
-            "weight_loss"   => currentValue <= goal.TargetValue ? "completed" : "in_progress",
-            "strength_target" => currentValue >= goal.TargetValue ? "completed" : "in_progress",
+            "weight_loss"               => currentValue <= goal.TargetValue ? "completed" : "in_progress",
+            "strength_target"           => currentValue >= goal.TargetValue ? "completed" : "in_progress",
             "weekly_exercise_frequency" => currentValue >= goal.TargetValue ? "completed" : "in_progress",
-            _ => "in_progress"
+            "calorie_target"            => currentValue >= goal.TargetValue ? "completed" : "in_progress",
+            _                           => "in_progress"
         };
 
         if (goal.Deadline.HasValue && goal.Status != "completed" &&
@@ -114,6 +115,15 @@ public class FitnessService
             .Include(a => a.Trainer)
             .Select(a => a.Trainer)
             .ToListAsync();
+    }
+
+    public async Task<Trainer?> GetMyTrainerAsync(int clientId)
+    {
+        var assignment = await _db.Assignments
+            .Where(a => a.ClientId == clientId)
+            .Include(a => a.Trainer)
+            .FirstOrDefaultAsync();
+        return assignment?.Trainer;
     }
 
     public async Task RequestSessionAsync(VirtualSession session)
