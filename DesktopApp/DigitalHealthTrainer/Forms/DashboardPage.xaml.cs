@@ -492,8 +492,8 @@ namespace DigitalHealthTrainer.Forms
 
             // ── Live Sessions Banner ─────────────────────────────────────────
             var liveStack = new VerticalStackLayout { Spacing = 6 };
-            var liveBannerCard = CreateCard(liveStack, Color.FromArgb("#EDE9FE"));
-            liveBannerCard.Stroke = Color.FromArgb("#7C3AED");
+            var liveBannerCard = CreateCard(liveStack, Color.FromArgb("#ECFDF5"));
+            liveBannerCard.Stroke = Color.FromArgb("#10B981");
             liveBannerCard.StrokeThickness = 2;
             contentArea.Children.Add(liveBannerCard);
 
@@ -519,7 +519,7 @@ namespace DigitalHealthTrainer.Forms
             var pckStatus = new Picker { Title = Lang.Get("status"), TextColor = Color.FromArgb("#1E293B") };
             pckStatus.Items.Add(Lang.Get("all_types"));
             pckStatus.Items.Add("scheduled");
-            pckStatus.Items.Add("in_progress");
+            pckStatus.Items.Add("active");
             pckStatus.Items.Add("completed");
             pckStatus.Items.Add("canceled");
             pckStatus.SelectedIndex = 0;
@@ -543,7 +543,7 @@ namespace DigitalHealthTrainer.Forms
                 },
                 ColumnSpacing = 10
             };
-            var btnStartLive = new Button { Text = "🔴 Start Live", Style = (Style)Application.Current!.Resources["PrimaryBtn"], BackgroundColor = Color.FromArgb("#7C3AED") };
+            var btnStartLive = new Button { Text = "🟢 Start Session", Style = (Style)Application.Current!.Resources["PrimaryBtn"], BackgroundColor = Color.FromArgb("#059669") };
             var btnComplete  = new Button { Text = Lang.Get("mark_completed"), Style = (Style)Application.Current!.Resources["SuccessBtn"] };
             var btnCancel    = new Button { Text = Lang.Get("cancel_session"), Style = (Style)Application.Current!.Resources["DangerBtn"] };
             actionGrid.Add(btnStartLive, 0);
@@ -567,24 +567,24 @@ namespace DigitalHealthTrainer.Forms
 
                 // Live sessions banner
                 liveStack.Children.Clear();
-                var liveSessions = allSessions.Where(s => s.Status == "in_progress").ToList();
+                var liveSessions = allSessions.Where(s => s.Status == "active").ToList();
                 if (liveSessions.Any())
                 {
                     liveBannerCard.IsVisible = true;
                     liveStack.Children.Add(new Label
                     {
-                        Text = $"🔴  {liveSessions.Count} LIVE SESSION{(liveSessions.Count > 1 ? "S" : "")} IN PROGRESS",
+                        Text = $"🟢  {liveSessions.Count} ACTIVE SESSION{(liveSessions.Count > 1 ? "S" : "")}",
                         FontSize = 16, FontAttributes = FontAttributes.Bold,
-                        TextColor = Color.FromArgb("#5B21B6")
+                        TextColor = Color.FromArgb("#059669")
                     });
                     foreach (var live in liveSessions)
                     {
                         var liveRow = new HorizontalStackLayout { Spacing = 12, Margin = new Thickness(0, 4, 0, 0) };
-                        liveRow.Children.Add(new Label { Text = "▶", FontSize = 14, TextColor = Color.FromArgb("#7C3AED"), VerticalOptions = LayoutOptions.Center });
+                        liveRow.Children.Add(new Label { Text = "▶", FontSize = 14, TextColor = Color.FromArgb("#059669"), VerticalOptions = LayoutOptions.Center });
                         liveRow.Children.Add(new Label
                         {
                             Text = $"{live.ClientName}  ·  started {live.SessionTimeDisplay}  ·  {live.DurationMinutes} min",
-                            FontSize = 13, TextColor = Color.FromArgb("#4C1D95"), VerticalOptions = LayoutOptions.Center
+                            FontSize = 13, TextColor = Color.FromArgb("#065F46"), VerticalOptions = LayoutOptions.Center
                         });
                         liveStack.Children.Add(liveRow);
                     }
@@ -670,10 +670,10 @@ namespace DigitalHealthTrainer.Forms
                 }
                 if (session.Status != "scheduled")
                 {
-                    await DisplayAlert("Start Live", $"Only 'scheduled' sessions can be started. Selected session is '{session.StatusDisplay}'.", "OK");
+                    await DisplayAlert("Start Session", $"Only 'scheduled' sessions can be started. Selected session is '{session.StatusDisplay}'.", "OK");
                     return;
                 }
-                SessionService.UpdateSessionStatus(session.SessionId, "in_progress");
+                SessionService.UpdateSessionStatus(session.SessionId, "active");
                 NotificationService.NotifySessionStarted(session.SessionId, session.ClientName, session.SessionTime);
                 LoadSessions();
             };
@@ -682,7 +682,7 @@ namespace DigitalHealthTrainer.Forms
             btnComplete.Clicked += (s, e) =>
             {
                 if (sessionsCollection.SelectedItem is SessionDisplay session &&
-                    (session.Status == "scheduled" || session.Status == "in_progress"))
+                    (session.Status == "scheduled" || session.Status == "active"))
                 {
                     SessionService.UpdateSessionStatus(session.SessionId, "completed");
                     NotificationService.NotifySessionCompleted(session.SessionId, session.ClientName, session.SessionTime);
@@ -694,7 +694,7 @@ namespace DigitalHealthTrainer.Forms
             btnCancel.Clicked += (s, e) =>
             {
                 if (sessionsCollection.SelectedItem is SessionDisplay session &&
-                    (session.Status == "scheduled" || session.Status == "in_progress"))
+                    (session.Status == "scheduled" || session.Status == "active"))
                 {
                     SessionService.UpdateSessionStatus(session.SessionId, "canceled");
                     NotificationService.NotifySessionCanceled(session.SessionId, session.ClientName, session.SessionTime);

@@ -776,12 +776,13 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .badge-green  { background: var(--green-dim); color: var(--green); }
 .badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
 .badge-red    { background: var(--red-dim); color: var(--red); }
-.badge-live   {
-  background: #2d1a5c;
-  color: var(--accent-hi);
+.badge-live, .badge-active {
+  background: #103a26;
+  color: #34d399;
+  border: 1px solid #34d399;
   animation: pulse-badge 1.5s ease-in-out infinite;
 }
-@keyframes pulse-badge { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+@keyframes pulse-badge { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
 
 /* ── Exercises table improvements ───────────────────────────────────────── */
 .data-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
@@ -811,36 +812,37 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .trend-down { color: var(--green); font-size: 0.75rem; }
 .trend-flat { color: var(--text-dim); font-size: 0.75rem; }
 
-/* ── Sessions live indicator ─────────────────────────────────────────────── */
-.session-card.status-live {
-  border-left: 4px solid var(--accent-hi);
-  background: linear-gradient(90deg, rgba(124,58,237,0.08), transparent);
+/* ── Sessions active indicator ───────────────────────────────────────────── */
+.session-card.status-live,
+.session-card.status-active {
+  border-left: 4px solid #34d399;
+  background: linear-gradient(90deg, rgba(52,211,153,0.08), transparent);
 }
 .live-dot {
   display: inline-block;
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: var(--accent-hi);
+  background: #34d399;
   margin-right: 4px;
   animation: live-pulse 1s ease-in-out infinite;
 }
 @keyframes live-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.6; } }
 
-/* ── Live Session Banner (Sessions page) ─────────────────────────────────── */
+/* ── Active Session Banner (Sessions page) ───────────────────────────────── */
 .live-session-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(109,40,217,0.08));
-  border: 2px solid var(--accent);
+  background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,122,87,0.06));
+  border: 2px solid #34d399;
   border-radius: var(--radius);
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
   animation: live-banner-pulse 2.5s ease-in-out infinite;
 }
 @keyframes live-banner-pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); }
-  50%      { box-shadow: 0 0 0 6px rgba(124,58,237,0.18); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  50%      { box-shadow: 0 0 0 6px rgba(52,211,153,0.2); }
 }
 
 .live-banner-left { display: flex; align-items: center; gap: 0.875rem; }
@@ -848,18 +850,18 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .live-banner-dot {
   width: 14px; height: 14px;
   border-radius: 50%;
-  background: var(--accent-hi);
+  background: #34d399;
   flex-shrink: 0;
   animation: live-pulse 1s ease-in-out infinite;
 }
 
-.live-banner-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; color: var(--accent-hi); }
+.live-banner-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; color: #34d399; }
 .live-banner-sub   { font-size: 0.85rem; color: var(--text-sub); margin-top: 0.15rem; }
 
 .live-banner-time {
   font-family: 'Syne', sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--accent-hi);
+  color: #34d399;
   white-space: nowrap;
 }

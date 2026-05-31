@@ -8,7 +8,7 @@ namespace DigitalHealthTrainer.Services
     public class LiveColorConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-            => value is true ? Color.FromArgb("#F5F3FF") : Colors.White;
+            => value is true ? Color.FromArgb("#ECFDF5") : Colors.White;
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             => throw new NotImplementedException();
@@ -27,13 +27,13 @@ namespace DigitalHealthTrainer.Services
 
         public Color StatusColor => Status switch
         {
-            "completed"   => Color.FromArgb("#059669"),
-            "canceled"    => Color.FromArgb("#DC2626"),
-            "in_progress" => Color.FromArgb("#7C3AED"),
-            _             => Color.FromArgb("#D97706")
+            "completed" => Color.FromArgb("#059669"),
+            "canceled"  => Color.FromArgb("#DC2626"),
+            "active"    => Color.FromArgb("#10B981"),
+            _           => Color.FromArgb("#D97706")
         };
 
-        public bool IsLive => Status == "in_progress";
+        public bool IsLive => Status == "active";
     }
 
     public static class SessionService

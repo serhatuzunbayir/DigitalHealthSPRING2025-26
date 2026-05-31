@@ -7,6 +7,6 @@ namespace DigitalHealthTrainer.Models
         public int TrainerId { get; set; }
         public DateTime SessionTime { get; set; }
         public int DurationMinutes { get; set; }
-        public string Status { get; set; } = string.Empty;         // scheduled, canceled, completed
+        public string Status { get; set; } = string.Empty;         // scheduled, active, completed, canceled
     }
 }

@@ -194,7 +194,7 @@ public class VirtualSession
     public int DurationMinutes { get; set; }
 
     [Column("status"), MaxLength(20)]
-    public string Status { get; set; } = "scheduled"; // scheduled | canceled | completed
+    public string Status { get; set; } = "scheduled"; // scheduled | active | completed | canceled
 
     [ForeignKey("ClientId")]
     public Client Client { get; set; } = null!;

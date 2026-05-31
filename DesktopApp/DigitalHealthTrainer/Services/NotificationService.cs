@@ -58,8 +58,8 @@ namespace DigitalHealthTrainer.Services
         {
             try
             {
-                string message = $"🔴 LIVE session started with {clientName} at {sessionTime:HH:mm}";
-                OnSessionStarted?.Invoke(message, sessionId, "in_progress");
+                string message = $"🟢 Session is now active with {clientName} at {sessionTime:HH:mm}";
+                OnSessionStarted?.Invoke(message, sessionId, "active");
             }
             catch (Exception)
             {

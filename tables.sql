@@ -75,7 +75,7 @@ CREATE TABLE virtual_sessions (
     trainer_id INT NOT NULL,
     session_time TIMESTAMP NOT NULL,
     duration_minutes INT NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('scheduled', 'canceled', 'completed')) NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('scheduled', 'canceled', 'completed', 'active')) NOT NULL,
     FOREIGN KEY (client_id) REFERENCES clients(client_id),
     FOREIGN KEY (trainer_id) REFERENCES trainers(trainer_id)
 );

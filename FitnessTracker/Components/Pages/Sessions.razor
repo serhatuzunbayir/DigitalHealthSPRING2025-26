@@ -73,8 +73,8 @@ else
             <div class="live-banner-left">
                 <span class="live-banner-dot"></span>
                 <div>
-                    <strong class="live-banner-title">Live Session in Progress!</strong>
-                    <p class="live-banner-sub">Your session with <strong>@LiveSession.Trainer?.Username</strong> is currently active · @LiveSession.DurationMinutes min</p>
+                    <strong class="live-banner-title">Session Active!</strong>
+                    <p class="live-banner-sub">Your session with <strong>@LiveSession.Trainer?.Username</strong> is now active · @LiveSession.DurationMinutes min</p>
                 </div>
             </div>
             <div class="live-banner-time">
@@ -96,7 +96,7 @@ else
                 <div class="session-card @SessionClass(s.Status)">
                     <div class="session-info">
                         <div class="session-time">
-                            @if (s.Status == "in_progress")
+                            @if (s.Status == "active")
                             { <span class="live-dot"></span> }
                             @s.SessionTime.ToLocalTime().ToString("dddd, MMM d · HH:mm")
                         </div>
@@ -120,7 +120,7 @@ else
     int selectedTrainerId = 0;
     int _clientId;
     System.Threading.Timer? _pollTimer;
-    VirtualSession? LiveSession => sessions?.FirstOrDefault(s => s.Status == "in_progress");
+    VirtualSession? LiveSession => sessions?.FirstOrDefault(s => s.Status == "active");
     DateTime sessionTime = DateTime.Now.AddDays(1);
     int duration = 60;
     bool showForm = false, _ready = false;
@@ -179,25 +179,25 @@ else
 
     static string SessionClass(string status) => status switch
     {
-        "scheduled"   => "status-yellow",
-        "completed"   => "status-green",
-        "canceled"    => "status-red",
-        "in_progress" => "status-live",
-        _             => ""
+        "scheduled" => "status-yellow",
+        "completed" => "status-green",
+        "canceled"  => "status-red",
+        "active"    => "status-active",
+        _           => ""
     };
     static string StatusBadgeClass(string status) => status switch
     {
-        "completed"   => "badge-green",
-        "canceled"    => "badge-red",
-        "in_progress" => "badge-live",
-        _             => "badge-yellow"
+        "completed" => "badge-green",
+        "canceled"  => "badge-red",
+        "active"    => "badge-active",
+        _           => "badge-yellow"
     };
     static string StatusLabel(string status) => status switch
     {
-        "in_progress" => "🔴 LIVE",
-        "scheduled"   => "scheduled",
-        "completed"   => "completed",
-        "canceled"    => "canceled",
-        _             => status
+        "active"    => "🟢 Active",
+        "scheduled" => "Scheduled",
+        "completed" => "Completed",
+        "canceled"  => "Canceled",
+        _           => status
     };
 }
